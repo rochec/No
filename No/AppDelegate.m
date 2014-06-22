@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "NoTableViewController.h"
+#import <Parse/Parse.h>
 
 @interface AppDelegate () <UINavigationControllerDelegate>
 
@@ -19,6 +20,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    [Parse setApplicationId:@"8QTzs2lrBwlEunCiprL9YJKTxbVR1yrUczlKMDRZ"
+                  clientKey:@"1HsIQgbrMzR9wSZ7JB9lbLHk9ip6tQTOAJ40DgBW"];
+    
     return YES;
 }
 							

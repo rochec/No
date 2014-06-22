@@ -58,6 +58,7 @@
     [super viewWillAppear:animated];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
+    [self.navigationController setNavigationBarHidden:YES];
 }
 
 -(void)viewWillLayoutSubviews
@@ -212,6 +213,7 @@
             self.addTextField.defaultTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:40]};
             self.addTextField.adjustsFontSizeToFitWidth = YES;
             self.addTextField.textAlignment = NSTextAlignmentCenter;
+            self.addTextField.tintColor = [UIColor whiteColor];
             
             self.addTextField.delegate = self;
             self.addTextField.tag = indexPath.row;
@@ -294,13 +296,6 @@
 
 
 #pragma mark - Helper Methods
-
-//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-//    CGRect frame = self.shareButton.frame;
-//    frame.origin.y = scrollView.contentOffset.y + self.tableView.frame.size.height - self.shareButton.frame.size.height;
-//    self.shareButton.frame = frame;
-//    [self.view bringSubviewToFront:self.shareButton];
-//}
 
 - (void)resetAddCell
 {
