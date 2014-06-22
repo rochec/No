@@ -10,6 +10,7 @@
 		7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */; };
 		7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */; };
 		7BDC94E9195744B1005C0C20 /* addthis500.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BDC94E8195744B1005C0C20 /* addthis500.png */; };
+		7BDC94EC19574819005C0C20 /* NoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BDC94EB19574819005C0C20 /* NoViewController.m */; };
 		7BF74CD1195480B600CAB951 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD0195480B600CAB951 /* Foundation.framework */; };
 		7BF74CD3195480B600CAB951 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD2195480B600CAB951 /* CoreGraphics.framework */; };
 		7BF74CD5195480B600CAB951 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD4195480B600CAB951 /* UIKit.framework */; };
@@ -42,6 +43,8 @@
 		7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnblockTableViewController.h; sourceTree = "<group>"; };
 		7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnblockTableViewController.m; sourceTree = "<group>"; };
 		7BDC94E8195744B1005C0C20 /* addthis500.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = addthis500.png; sourceTree = "<group>"; };
+		7BDC94EA19574819005C0C20 /* NoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoViewController.h; sourceTree = "<group>"; };
+		7BDC94EB19574819005C0C20 /* NoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NoViewController.m; sourceTree = "<group>"; };
 		7BF74CCD195480B600CAB951 /* No.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = No.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BF74CD0195480B600CAB951 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7BF74CD2195480B600CAB951 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -123,12 +126,14 @@
 				7BF74CDF195480B600CAB951 /* AppDelegate.h */,
 				7BF74CE0195480B600CAB951 /* AppDelegate.m */,
 				7BF74CE2195480B600CAB951 /* Main.storyboard */,
-				7BF74D05195480DF00CAB951 /* NoTableViewController.h */,
-				7BF74D06195480DF00CAB951 /* NoTableViewController.m */,
+				7BDC94EA19574819005C0C20 /* NoViewController.h */,
+				7BDC94EB19574819005C0C20 /* NoViewController.m */,
 				7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */,
 				7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */,
 				7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */,
 				7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */,
+				7BF74D05195480DF00CAB951 /* NoTableViewController.h */,
+				7BF74D06195480DF00CAB951 /* NoTableViewController.m */,
 				7BF74CE8195480B600CAB951 /* Images.xcassets */,
 				7BF74CD7195480B600CAB951 /* Supporting Files */,
 			);
@@ -268,6 +273,7 @@
 				7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */,
 				7BF74CDD195480B600CAB951 /* main.m in Sources */,
 				7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */,
+				7BDC94EC19574819005C0C20 /* NoViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
