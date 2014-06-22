@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  UnblockTableViewController.h
 //  No
 //
 //  Created by Chris Roche on 6/20/14.
@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface UnblockTableViewController : UITableViewController
 
 @end

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */; };
+		7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */; };
 		7BF74CD1195480B600CAB951 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD0195480B600CAB951 /* Foundation.framework */; };
 		7BF74CD3195480B600CAB951 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD2195480B600CAB951 /* CoreGraphics.framework */; };
 		7BF74CD5195480B600CAB951 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD4195480B600CAB951 /* UIKit.framework */; };
@@ -14,13 +16,13 @@
 		7BF74CDD195480B600CAB951 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF74CDC195480B600CAB951 /* main.m */; };
 		7BF74CE1195480B600CAB951 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF74CE0195480B600CAB951 /* AppDelegate.m */; };
 		7BF74CE4195480B600CAB951 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7BF74CE2195480B600CAB951 /* Main.storyboard */; };
-		7BF74CE7195480B600CAB951 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF74CE6195480B600CAB951 /* ViewController.m */; };
 		7BF74CE9195480B600CAB951 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7BF74CE8195480B600CAB951 /* Images.xcassets */; };
 		7BF74CF0195480B600CAB951 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CEF195480B600CAB951 /* XCTest.framework */; };
 		7BF74CF1195480B600CAB951 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD0195480B600CAB951 /* Foundation.framework */; };
 		7BF74CF2195480B600CAB951 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BF74CD4195480B600CAB951 /* UIKit.framework */; };
 		7BF74CFA195480B600CAB951 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7BF74CF8195480B600CAB951 /* InfoPlist.strings */; };
 		7BF74CFC195480B600CAB951 /* NoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF74CFB195480B600CAB951 /* NoTests.m */; };
+		7BF74D07195480DF00CAB951 /* NoTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BF74D06195480DF00CAB951 /* NoTableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +36,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareTableViewController.h; sourceTree = "<group>"; };
+		7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareTableViewController.m; sourceTree = "<group>"; };
+		7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnblockTableViewController.h; sourceTree = "<group>"; };
+		7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UnblockTableViewController.m; sourceTree = "<group>"; };
 		7BF74CCD195480B600CAB951 /* No.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = No.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BF74CD0195480B600CAB951 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7BF74CD2195480B600CAB951 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -45,14 +51,14 @@
 		7BF74CDF195480B600CAB951 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7BF74CE0195480B600CAB951 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		7BF74CE3195480B600CAB951 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		7BF74CE5195480B600CAB951 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		7BF74CE6195480B600CAB951 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		7BF74CE8195480B600CAB951 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		7BF74CEE195480B600CAB951 /* NoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BF74CEF195480B600CAB951 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		7BF74CF7195480B600CAB951 /* NoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NoTests-Info.plist"; sourceTree = "<group>"; };
 		7BF74CF9195480B600CAB951 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7BF74CFB195480B600CAB951 /* NoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NoTests.m; sourceTree = "<group>"; };
+		7BF74D05195480DF00CAB951 /* NoTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoTableViewController.h; sourceTree = "<group>"; };
+		7BF74D06195480DF00CAB951 /* NoTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NoTableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,8 +121,12 @@
 				7BF74CDF195480B600CAB951 /* AppDelegate.h */,
 				7BF74CE0195480B600CAB951 /* AppDelegate.m */,
 				7BF74CE2195480B600CAB951 /* Main.storyboard */,
-				7BF74CE5195480B600CAB951 /* ViewController.h */,
-				7BF74CE6195480B600CAB951 /* ViewController.m */,
+				7BF74D05195480DF00CAB951 /* NoTableViewController.h */,
+				7BF74D06195480DF00CAB951 /* NoTableViewController.m */,
+				7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */,
+				7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */,
+				7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */,
+				7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */,
 				7BF74CE8195480B600CAB951 /* Images.xcassets */,
 				7BF74CD7195480B600CAB951 /* Supporting Files */,
 			);
@@ -249,9 +259,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7BF74CE7195480B600CAB951 /* ViewController.m in Sources */,
 				7BF74CE1195480B600CAB951 /* AppDelegate.m in Sources */,
+				7BF74D07195480DF00CAB951 /* NoTableViewController.m in Sources */,
+				7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */,
 				7BF74CDD195480B600CAB951 /* main.m in Sources */,
+				7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -456,6 +468,7 @@
 				7BF74D01195480B600CAB951 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		7BF74D02195480B600CAB951 /* Build configuration list for PBXNativeTarget "NoTests" */ = {
 			isa = XCConfigurationList;
@@ -464,6 +477,7 @@
 				7BF74D04195480B600CAB951 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
