@@ -13,6 +13,7 @@
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
 @property (strong, nonatomic) UITextField *addTextField;
+@property (strong, nonatomic) UIButton *shareButton;
 
 @end
 
@@ -69,10 +70,11 @@
 
 -(void)viewWillLayoutSubviews
 {
-    UIButton *shareButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 75, self.view.bounds.size.height - 75, 50.0, 50.0)];
-    [shareButton setTitle:@"Share" forState:UIControlStateNormal];
-    [shareButton addTarget:self action:@selector(toShareButton:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:shareButton];
+    self.shareButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 75, self.view.bounds.size.height - 75, 50.0, 50.0)];
+    //[self.shareButton setTitle:@"Share" forState:UIControlStateNormal];
+    [self.shareButton setImage:[UIImage imageNamed:@"addthis500"] forState:UIControlStateNormal];
+    [self.shareButton addTarget:self action:@selector(toShareButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.shareButton];
 }
 
 - (void)didReceiveMemoryWarning
@@ -202,31 +204,24 @@
     {
         dispatch_async(dispatch_get_main_queue(), ^{
             UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-            NSLog(@"bounds.x: %f, bounds.y: %F, frame.x: %f, frame.y: %f", cell.bounds.origin.x, cell.bounds.origin.y, cell.frame.origin.x, cell.frame.origin.y);
             cell.textLabel.hidden = YES;
             
             self.addTextField = [[UITextField alloc] initWithFrame:CGRectMake(cell.bounds.origin.x + 10, cell.bounds.origin.y + 10, cell.bounds.size.width - 20, cell.bounds.size.height - 20)];
             
-            //textField.font = [UIFont fontWithName:@"AvenirNext-Bold" size:30];
-            //textField.textColor = [UIColor whiteColor];
-            
-            NSAttributedString *textFieldPlaceholder = [[NSAttributedString alloc] initWithString:@"TYPE USERNAME TO ADD" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]}];
-
+            NSAttributedString *textFieldPlaceholder = [[NSAttributedString alloc] initWithString:@"TYPE USERNAME TO ADD" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:20]}];
             self.addTextField.attributedPlaceholder = textFieldPlaceholder;
-            //textField.placeholder = @"TYPE USERNAME TO ADD";
-            
-            self.addTextField.defaultTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]};
-            
-            
+
+            self.addTextField.defaultTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:40]};
             self.addTextField.adjustsFontSizeToFitWidth = YES;
-            
             self.addTextField.textAlignment = NSTextAlignmentCenter;
+            
             self.addTextField.delegate = self;
             self.addTextField.tag = indexPath.row;
-            
-            //textField.typingAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]};
+
             [cell addSubview:self.addTextField];
+            
             [self.addTextField becomeFirstResponder];
+            
         });
         
         return indexPath;
@@ -301,6 +296,13 @@
 
 
 #pragma mark - Helper Methods
+
+//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+//    CGRect frame = self.shareButton.frame;
+//    frame.origin.y = scrollView.contentOffset.y + self.tableView.frame.size.height - self.shareButton.frame.size.height;
+//    self.shareButton.frame = frame;
+//    [self.view bringSubviewToFront:self.shareButton];
+//}
 
 - (void)resetAddCell
 {
