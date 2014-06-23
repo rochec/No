@@ -155,6 +155,11 @@
     [user signUpInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         if (!error)
         {
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"FirstTime"];
+            [[NSUserDefaults standardUserDefaults] setObject:user.username forKey:@"UserName"];
+            [[NSUserDefaults standardUserDefaults] setObject:user.password forKey:@"Password"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            
             [self performSegueWithIdentifier:@"toNo" sender:nil];
         }
         else

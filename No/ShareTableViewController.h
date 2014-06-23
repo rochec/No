@@ -8,9 +8,17 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol ShareTableViewControllerDelegate <NSObject>
+
+- (void)dismissAndAddUser;
+
+@end
+
 @interface ShareTableViewController : UITableViewController
 
+@property (weak, nonatomic) id <ShareTableViewControllerDelegate> delegate;
+
 @property (strong, nonatomic, readonly) NSMutableArray *cellTitles;
-@property (strong, nonatomic) NSString *userName;
+@property (strong, nonatomic) PFUser *userID;
 
 @end

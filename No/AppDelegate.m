@@ -7,21 +7,50 @@
 //
 
 #import "AppDelegate.h"
-#import "NoTableViewController.h"
+#import "NoViewController.h"
+#import "UserNameTableViewController.h"
+
+
 #import <Parse/Parse.h>
 
 @interface AppDelegate () <UINavigationControllerDelegate>
 
-@property (strong, nonatomic) NoTableViewController *noController;
 
 @end
 
 @implementation AppDelegate
+{
+    bool _firstTime;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     [Parse setApplicationId:@"8QTzs2lrBwlEunCiprL9YJKTxbVR1yrUczlKMDRZ"
                   clientKey:@"1HsIQgbrMzR9wSZ7JB9lbLHk9ip6tQTOAJ40DgBW"];
+
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    
+    NSDictionary *defaults = @{@"FirstTime": @YES};
+    [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
+   
+    _firstTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"FirstTime"];
+    
+    if (_firstTime)
+    {
+        UITableViewController *controller = [storyboard instantiateViewControllerWithIdentifier:@"registerUser"];
+        self.window.rootViewController = controller;
+        [self.window makeKeyAndVisible];
+    }
+    else
+    {
+        UIViewController *controller = [storyboard instantiateViewControllerWithIdentifier:@"noView"];
+        self.window.rootViewController = controller;
+        [self.window makeKeyAndVisible];
+    }
+    
+    
     
     return YES;
 }

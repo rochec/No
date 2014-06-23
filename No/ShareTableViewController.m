@@ -8,9 +8,11 @@
 
 #import "ShareTableViewController.h"
 
-@interface ShareTableViewController ()
+@interface ShareTableViewController () <UITextFieldDelegate>
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
+@property (strong, nonatomic) UITextField *addTextField;
+
 
 @end
 
@@ -52,10 +54,8 @@
     self.view.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
     [self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
     //self.tableView.editing = NO;
-    
-    self.userName = @"USER NAME";
-    
-    self.cellTitles = [@[self.userName, @"INVITE", @"FIND FRIENDS", @"UNBLOCK", @"NO'S: 0", @"+", @"DONE"] mutableCopy];
+        
+    self.cellTitles = [@[self.userID.username, @"INVITE", @"FIND FRIENDS", @"UNBLOCK", @"NO'S: 0", @"+", @"DONE"] mutableCopy];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -139,14 +139,6 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
-//    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissView)];
-//    tapGesture.numberOfTapsRequired = 1;
-//    
-//    if (indexPath.row == 6)
-//    {
-//        [cell addGestureRecognizer:tapGesture];
-//    }
-    
     cell.textLabel.text = self.cellTitles[indexPath.row];
     
     return cell;
@@ -161,14 +153,14 @@
 
 -(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row == 6)
+    if (indexPath.row == [self.cellTitles count] - 1)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self dismissViewControllerAnimated:YES completion:nil];
         });
         return nil;
     }
-    else if (indexPath.row == 3)
+    else if (indexPath.row == [self.cellTitles count] - 4)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self performSegueWithIdentifier:@"toUnblock" sender:nil];
@@ -176,7 +168,7 @@
         return nil;
         
     }
-    else if (indexPath.row == 1)
+    else if (indexPath.row == [self.cellTitles count] - 6)
     {
         //get current cell
         UITableViewCell * cell = [self.tableView cellForRowAtIndexPath:indexPath];
@@ -228,6 +220,37 @@
         }];
         return nil;
     }
+    else if (indexPath.row == [self.cellTitles count] - 2)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+//            UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+//            cell.textLabel.hidden = YES;
+//            
+//            self.addTextField = [[UITextField alloc] initWithFrame:CGRectMake(cell.bounds.origin.x + 10, cell.bounds.origin.y + 10, cell.bounds.size.width - 20, cell.bounds.size.height - 20)];
+//            
+//            NSAttributedString *textFieldPlaceholder = [[NSAttributedString alloc] initWithString:@"TYPE USERNAME TO ADD" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:20]}];
+//            self.addTextField.attributedPlaceholder = textFieldPlaceholder;
+//            
+//            self.addTextField.defaultTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:40]};
+//            self.addTextField.adjustsFontSizeToFitWidth = YES;
+//            self.addTextField.textAlignment = NSTextAlignmentCenter;
+//            self.addTextField.tintColor = [UIColor whiteColor];
+//            
+//            self.addTextField.delegate = self;
+//            self.addTextField.tag = indexPath.row;
+//            
+//            [cell addSubview:self.addTextField];
+//            
+//            [self.addTextField becomeFirstResponder];
+            
+            [self dismissViewControllerAnimated:YES completion:^{
+                [self.delegate dismissAndAddUser];
+            }];
+            
+        });
+        
+        return indexPath;
+    }
     else
     {
         return nil;
@@ -278,59 +301,106 @@
     return image;
 }
 
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
-
 - (BOOL)prefersStatusBarHidden
 {
     return YES;
 }
+
+#pragma mark - UITextFieldDelegate
+
+-(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    textField.text = [textField.text stringByReplacingCharactersInRange:range
+                                                             withString:[string uppercaseString]];
+    return NO;
+}
+
+-(BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    
+    if (![textField.text isEqualToString:@""])
+    {
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+        [self.cellTitles insertObject:textField.text atIndex:indexPath.row];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+            [self.tableView reloadData];
+        });
+    }
+    
+    [self resetAddCell];
+    return YES;
+}
+
+
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWasShown:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillBeHidden:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWasShown:(NSNotification*)aNotification
+{
+    NSDictionary* info = [aNotification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
+    
+    self.tableView.contentInset = contentInsets;
+    [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    
+    //scrollView.scrollIndicatorInsets = contentInsets;
+    
+    
+    // If active text field is hidden by keyboard, scroll it so it's visible
+    // Your app might not need or want this behavior.
+    //    CGRect aRect = self.view.frame;
+    //    aRect.size.height -= kbSize.height;
+    //    if (!CGRectContainsPoint(aRect, self.addTextField.frame.origin) ) {
+    //        [self.tableView scrollRectToVisible:self.addTextField.frame animated:YES];
+    //    }
+    
+}
+
+- (void)keyboardWillBeHidden:(NSNotification*)aNotification
+{
+    UIEdgeInsets contentInsets = UIEdgeInsetsZero;
+    
+    NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:rate.floatValue animations:^{
+        self.tableView.contentInset = contentInsets;
+        self.tableView.scrollIndicatorInsets = contentInsets;
+    }];
+}
+
+
+#pragma mark - Helper Methods
+
+- (void)resetAddCell
+{
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.addTextField.tag inSection:0];
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    [self.addTextField removeFromSuperview];
+    
+    cell.frame = CGRectMake(0, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
+    cell.textLabel.hidden = NO;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 @end

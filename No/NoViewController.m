@@ -7,14 +7,17 @@
 //
 
 #import "NoViewController.h"
+#import "ShareTableViewController.h"
 
-@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, ShareTableViewControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
 @property (strong, nonatomic) UITextField *addTextField;
 @property (strong, nonatomic) UIButton *shareButton;
+
+@property (strong, nonatomic) PFUser *userID;
 
 @end
 
@@ -33,6 +36,31 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [self registerForKeyboardNotifications];
+
+    
+    
+    PFUser *user = [PFUser currentUser];
+    if (user)
+    {
+        self.userID = user;
+    }
+    else
+    {
+        NSString *userName = [[NSUserDefaults standardUserDefaults] objectForKey:@"UserName"];
+        NSString *password = [[NSUserDefaults standardUserDefaults] objectForKey:@"Password"];
+        
+        [PFUser logInWithUsernameInBackground:userName password:password block:^(PFUser *user, NSError *error) {
+            if (user)
+            {
+                self.userID = user;
+            }
+            else
+            {
+                NSLog(@"error: %@", error);
+            }
+        }];
+    }
     
     
     //self.tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0);
@@ -41,7 +69,7 @@
     self.tableView.dataSource = self;
     self.tableView.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
     
-    self.cellTitles = [@[@"USERNAME", @"FIND FREINDS", @"INVITE", @"+"] mutableCopy];
+    self.cellTitles = [@[self.userID.username, @"FIND FREINDS", @"INVITE", @"+"] mutableCopy];
     
     //[self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
     
@@ -74,6 +102,16 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"toShare"])
+    {
+        ShareTableViewController *controller = segue.destinationViewController;
+        controller.userID = self.userID;
+        controller.delegate = self;
+    }
 }
 
 #pragma mark - Table view data source
@@ -110,6 +148,7 @@
             break;
             
         default:
+            cell.backgroundColor = [UIColor redColor];
             break;
     }
     
@@ -143,7 +182,7 @@
 
 -(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row == 2)
+    if (indexPath.row == [self.cellTitles count] - 2)
     {
         //get current cell
         UITableViewCell * cell = [self.tableView cellForRowAtIndexPath:indexPath];
@@ -199,7 +238,7 @@
         }];
         return nil;
     }
-    else if (indexPath.row == 3)
+    else if (indexPath.row == [self.cellTitles count] - 1)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
             UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
@@ -228,14 +267,6 @@
     }
     else
         return nil;
-}
-
--(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (indexPath.row == 3)
-    {
-        
-    }
 }
 
 #pragma mark Social
@@ -290,8 +321,79 @@
 -(BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     [textField resignFirstResponder];
+    
+    if (![textField.text isEqualToString:@""])
+    {
+            [self queryForUser];
+    }
+    
     [self resetAddCell];
     return YES;
+}
+
+
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWasShown:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillBeHidden:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWasShown:(NSNotification*)aNotification
+{
+    NSDictionary* info = [aNotification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
+    
+    self.tableView.contentInset = contentInsets;
+    [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+   
+//    NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+//    [UIView animateWithDuration:rate.floatValue animations:^{
+//        self.tableView.contentInset = contentInsets;
+//        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+//    }];
+    
+    
+    //scrollView.scrollIndicatorInsets = contentInsets;
+    
+    
+    // If active text field is hidden by keyboard, scroll it so it's visible
+    // Your app might not need or want this behavior.
+//    CGRect aRect = self.view.frame;
+//    aRect.size.height -= kbSize.height;
+//    if (!CGRectContainsPoint(aRect, self.addTextField.frame.origin) ) {
+//        [self.tableView scrollRectToVisible:self.addTextField.frame animated:YES];
+//    }
+
+}
+
+- (void)keyboardWillBeHidden:(NSNotification*)aNotification
+{
+    UIEdgeInsets contentInsets = UIEdgeInsetsZero;
+    
+    NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+    [UIView animateWithDuration:rate.floatValue animations:^{
+        self.tableView.contentInset = contentInsets;
+        self.tableView.scrollIndicatorInsets = contentInsets;
+    }];
+}
+
+#pragma mark - ShareTableViewControllerDelegate
+
+-(void)dismissAndAddUser
+{
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 1 inSection:0];
+    
+    [self.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:
+     UITableViewScrollPositionNone];
+    
+    [self.tableView.delegate tableView:self.tableView willSelectRowAtIndexPath:indexPath];
 }
 
 
@@ -307,7 +409,36 @@
     cell.textLabel.hidden = NO;
 }
 
-
+- (void)queryForUser
+{
+    NSString *userName = [[NSUserDefaults standardUserDefaults] objectForKey:@"UserName"];
+    
+    if (![userName isEqualToString:self.addTextField.text])
+    {
+        PFQuery *query = [PFUser query];
+        [query whereKey:@"username" equalTo:self.addTextField.text];
+        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+            if ([objects firstObject] != nil)
+            {
+                PFUser *user = [objects firstObject];
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+                [self.cellTitles insertObject:user.username atIndex:indexPath.row];
+                //[self.cellTitles insertObject:user.username atIndex:[self.cellTitles count] - 2];
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                //[self.tableView reloadData];
+            }
+            else
+            {
+                NSLog(@"error %@", error);
+            }
+        }];
+    }
+    else
+    {
+        NSLog(@"that's you");
+    }
+    
+}
 
 
 
