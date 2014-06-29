@@ -54,8 +54,12 @@
     self.view.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
     [self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
     //self.tableView.editing = NO;
+    
+    NSInteger nosReceived = [[NSUserDefaults standardUserDefaults] integerForKey:@"nosReceived"];
+
+    NSString *nosReceivedString = [NSString stringWithFormat:@"NO'S: %ld", nosReceived];
         
-    self.cellTitles = [@[self.userID.username, @"INVITE", @"FIND FRIENDS", @"UNBLOCK", @"NO'S: 0", @"+", @"DONE"] mutableCopy];
+    self.cellTitles = [@[self.userID.username, @"INVITE", @"FIND FRIENDS", @"UNBLOCK", nosReceivedString, @"+", @"DONE"] mutableCopy];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -270,11 +274,14 @@
 
 - (void)postToFacebook
 {
+    PFUser *currentUser = [PFUser currentUser];
+    NSString *postText = [NSString stringWithFormat:@"I WANNA NO YOU!\nADD MY USERNAME: %@ TO NO ME.", currentUser.username];
+    
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
         SLComposeViewController *fbPost = [SLComposeViewController
                                            composeViewControllerForServiceType:SLServiceTypeFacebook];
-        [fbPost setInitialText:@"I wanna No you!\nAdd my No username by tapping here: http://www.no.com/username"];
+        [fbPost setInitialText:postText];
         [fbPost addImage:[self screenShotForSocialMedia]];
         [self presentViewController:fbPost animated:YES completion:nil];
     }
@@ -282,11 +289,14 @@
 
 - (void)postToTwitter
 {
+    PFUser *currentUser = [PFUser currentUser];
+    NSString *postText = [NSString stringWithFormat:@"I WANNA NO YOU!\nADD MY USERNAME: %@ TO NO ME.", currentUser.username];
+    
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
         SLComposeViewController *tweetSheet = [SLComposeViewController
                                                composeViewControllerForServiceType:SLServiceTypeTwitter];
-        [tweetSheet setInitialText:@"I wanna No you!\nAdd my No username by tapping here: http://www.no.com/username"];
+        [tweetSheet setInitialText:postText];
         [tweetSheet addImage:[self screenShotForSocialMedia]];
         [self presentViewController:tweetSheet animated:YES completion:nil];
     }

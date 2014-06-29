@@ -8,7 +8,7 @@
 
 #import "UserNameTableViewController.h"
 
-@interface UserNameTableViewController () <UITextFieldDelegate>
+@interface UserNameTableViewController () <UITextFieldDelegate, UIAlertViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITextField *userNameTextField;
 
@@ -148,7 +148,7 @@
 - (void)registerUser
 {
     NSLog(@"register user");
-    PFUser *user = [PFUser user];
+    __block PFUser *user = [PFUser user];
     user.username = self.userNameTextField.text;
     user.password = @"p5@4fjdk!#jdk(";
     
@@ -160,6 +160,21 @@
             [[NSUserDefaults standardUserDefaults] setObject:user.password forKey:@"Password"];
             [[NSUserDefaults standardUserDefaults] synchronize];
             
+            PFQuery *query = [PFUser query];
+            [query whereKey:@"username" equalTo:user.username];
+            [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                if (objects)
+                {
+                    user = [objects firstObject];
+                    NSString *string = [NSString stringWithFormat:@"user_%@", user.objectId];
+                    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+                    [currentInstallation addUniqueObject:string forKey:@"channels"];
+                    [currentInstallation saveInBackground];
+                    
+                    
+                }
+            }];
+            
             [self performSegueWithIdentifier:@"toNo" sender:nil];
         }
         else
@@ -167,12 +182,24 @@
             //username taken
             if (error.code == 202)
             {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Username Taken" message:@"That Username is already taken.  Please try again." delegate:self cancelButtonTitle:@"OK" otherButtonTitles: nil];
+                [alert show];
+                self.userNameTextField.text = @"";
                 NSLog(@"username taken");
+            }
+            else
+            {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error Signing Up" message:@"We apologize, there was an error.  Please try again." delegate:self cancelButtonTitle:@"OK" otherButtonTitles: nil];
+                [alert show];
             }
         }
     }];
 }
 
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    [self.userNameTextField becomeFirstResponder];
+}
 
 
 

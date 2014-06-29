@@ -27,12 +27,15 @@
 {
     [Parse setApplicationId:@"8QTzs2lrBwlEunCiprL9YJKTxbVR1yrUczlKMDRZ"
                   clientKey:@"1HsIQgbrMzR9wSZ7JB9lbLHk9ip6tQTOAJ40DgBW"];
+    
+    
 
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     
-    NSDictionary *defaults = @{@"FirstTime": @YES};
+    NSDictionary *defaults = @{@"FirstTime": @YES,
+                               @"nosReceived" : @0};
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
    
     _firstTime = [[NSUserDefaults standardUserDefaults] boolForKey:@"FirstTime"];
@@ -42,6 +45,7 @@
         UITableViewController *controller = [storyboard instantiateViewControllerWithIdentifier:@"registerUser"];
         self.window.rootViewController = controller;
         [self.window makeKeyAndVisible];
+        
     }
     else
     {
@@ -50,10 +54,36 @@
         [self.window makeKeyAndVisible];
     }
     
-    
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
+     (UIRemoteNotificationTypeBadge |
+      UIRemoteNotificationTypeAlert |
+      UIRemoteNotificationTypeSound)];
     
     return YES;
 }
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
+{
+    // Store the deviceToken in the current installation and save it to Parse.
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    [currentInstallation setDeviceTokenFromData:newDeviceToken];
+    [currentInstallation saveInBackground];
+}
+
+-(void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+    NSLog(@"error: %@", error);
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    [PFPush handlePush:userInfo];
+    
+    NSInteger nosReceived = [[NSUserDefaults standardUserDefaults] integerForKey:@"nosReceived"];
+    nosReceived++;
+    [[NSUserDefaults standardUserDefaults] setObject:@(nosReceived) forKey:@"nosReceived"];
+}
+
 							
 - (void)applicationWillResignActive:(UIApplication *)application
 {
