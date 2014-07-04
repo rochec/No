@@ -171,7 +171,10 @@
                     [currentInstallation addUniqueObject:string forKey:@"channels"];
                     [currentInstallation saveInBackground];
                     
-                    
+                    PFObject *relationships = [PFObject objectWithClassName:@"Relationships"];
+                    relationships[@"test"] = @"testComplete";
+                    relationships[@"user"] = [PFUser currentUser];
+                    [relationships saveInBackground];
                 }
             }];
             

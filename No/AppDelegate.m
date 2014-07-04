@@ -59,6 +59,8 @@
       UIRemoteNotificationTypeAlert |
       UIRemoteNotificationTypeSound)];
     
+    [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
+    
     return YES;
 }
 
@@ -82,6 +84,8 @@
     NSInteger nosReceived = [[NSUserDefaults standardUserDefaults] integerForKey:@"nosReceived"];
     nosReceived++;
     [[NSUserDefaults standardUserDefaults] setObject:@(nosReceived) forKey:@"nosReceived"];
+    
+    [PFAnalytics trackAppOpenedWithRemoteNotificationPayload:userInfo];
 }
 
 							
@@ -89,6 +93,13 @@
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    
+    NSArray *cellTitles = [[NSUserDefaults standardUserDefaults] arrayForKey:@"cellTitles"];
+    
+    NSString *count = [NSString stringWithFormat:@"%lu", (unsigned long)[cellTitles count] - 3];
+    NSDictionary *dimensions = @{@"friends": count};
+    
+    [PFAnalytics trackEvent:@"numberOfFriends" dimensions:dimensions];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application

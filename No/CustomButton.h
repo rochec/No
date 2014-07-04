@@ -7,11 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+@class SlideTableViewCell;
 
 @interface CustomButton : UIButton
 
-@property (strong, nonatomic) UITableViewCell *slideCell;
+@property (strong, nonatomic) SlideTableViewCell *optionsCell;
+@property (strong, nonatomic) NSIndexPath *buttonIndexPath;
 
--(id)initWithFrame:(CGRect)frame withCell:(UITableViewCell *)cell;
 
 @end

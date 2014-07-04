@@ -46,6 +46,8 @@
 {
     [super viewDidLoad];
     
+    [PFAnalytics trackEvent:@"shareViewController Opened"];
+
     
     //self.tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0);
     

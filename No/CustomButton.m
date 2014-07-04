@@ -10,20 +10,31 @@
 
 @implementation CustomButton
 
-- (id)initWithFrame:(CGRect)frame
-{
-    return [self initWithFrame:frame withCell:nil];
-}
-
--(id)initWithFrame:(CGRect)frame withCell:(UITableViewCell *)cell
+-(id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self)
     {
-        self.slideCell = cell;
+        
     }
+    
     return self;
 }
+
+//- (id)initWithFrame:(CGRect)frame
+//{
+//    return [self initWithFrame:frame withCell:nil];
+//}
+
+//-(id)initWithFrame:(CGRect)frame withCell:(UITableViewCell *)cell
+//{
+//    self = [super initWithFrame:frame];
+//    if (self)
+//    {
+//        self.slideCell = cell;
+//    }
+//    return self;
+//}
 
 /*
 // Only override drawRect: if you perform custom drawing.

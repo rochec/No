@@ -9,6 +9,7 @@
 #import "NoViewController.h"
 #import "ShareTableViewController.h"
 #import "CustomButton.h"
+#import "SlideTableViewCell.h"
 
 typedef void(^myCompletion)(BOOL);
 
@@ -17,12 +18,15 @@ typedef void(^myCompletion)(BOOL);
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
+@property (strong, nonatomic) NSMutableArray *blockedUsers;
+
 @property (strong, nonatomic) UITextField *addTextField;
 @property (strong, nonatomic) UIButton *shareButton;
 
 @property (strong, nonatomic) UITableViewCell *slideCell;
 @property (strong, nonatomic) UITableViewCell *optionsCell;
 @property (strong, nonatomic) UITableViewCell *swipedCell;
+
 @property (strong, nonatomic) UIButton *leftButton;
 @property (strong, nonatomic) UIButton *middleButton;
 @property (strong, nonatomic) UIButton *rightButton;
@@ -35,6 +39,11 @@ typedef void(^myCompletion)(BOOL);
 @end
 
 @implementation NoViewController
+{
+    CGPoint touchLocation;
+    
+    __block BOOL isBLocked;
+}
 
 -(NSMutableArray *)cellTitles
 {
@@ -46,10 +55,21 @@ typedef void(^myCompletion)(BOOL);
     return _cellTitles;
 }
 
+-(NSMutableArray *)blockedUsers
+{
+    if (!_blockedUsers)
+    {
+        _blockedUsers = [[NSMutableArray alloc] init];
+    }
+    
+    return _blockedUsers;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     [self registerForKeyboardNotifications];
+    [PFAnalytics trackEvent:@"noViewController Opened"];
 
     self.slideCell = [[UITableViewCell alloc] initWithFrame:CGRectZero];
     
@@ -85,18 +105,6 @@ typedef void(^myCompletion)(BOOL);
     UISwipeGestureRecognizer *swipeGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didSwipe:)];
     swipeGestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
     [self.tableView addGestureRecognizer:swipeGestureRecognizer];
-    
-    //self.cellTitles = [@[self.userID.username, @"FIND FREINDS", @"INVITE", @"+"] mutableCopy];
-
-    //[@[@"FIND FREINDS", @"INVITE", @"+"] mutableCopy];
-    //[self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
-    
-    
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
-    
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
 -(void)viewWillAppear:(BOOL)animated
@@ -110,9 +118,10 @@ typedef void(^myCompletion)(BOOL);
     }
     else
     {
-        self.cellTitles = [[NSUserDefaults standardUserDefaults] objectForKey:@"cellTitles"];
-
+        self.cellTitles = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"cellTitles"]];
     }
+    
+    self.blockedUsers = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"blockedUsers"]];
     
     [super viewWillAppear:animated];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -204,20 +213,20 @@ typedef void(^myCompletion)(BOOL);
 }
 
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+- (SlideTableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *CellIdentifier = @"NoCell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    SlideTableViewCell *cell = (SlideTableViewCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (!cell)
     {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        cell = [[SlideTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
     cell.textLabel.text = self.cellTitles[indexPath.row];
-    
-    
-    
+    cell.textLabel.alpha = 1.0;
+
+
     return cell;
 }
 
@@ -350,38 +359,67 @@ typedef void(^myCompletion)(BOOL);
             {
                 user = [objects firstObject];
                 NSString *string = [NSString stringWithFormat:@"user_%@", user.objectId];
+                [self checkForBlockedUser:user];
                 
-                PFUser *currentUser = [PFUser currentUser];
-                
-                PFPush *push = [[PFPush alloc] init];
-                [push setChannel:string];
-                [push setMessage:[NSString stringWithFormat:@"%@ SENT YOU A NO!", currentUser.username]];
-                [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                    if (succeeded)
-                    {
+                if ([self userBlockedCheck] == NO)
+                {
+                    PFUser *currentUser = [PFUser currentUser];
+                    
+                    PFPush *push = [[PFPush alloc] init];
+                    [push setChannel:string];
+                    
+                    [push setMessage:[NSString stringWithFormat:@"FROM %@", currentUser.username]];
+                    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded)
+                        {
                             [spinner stopAnimating];
                             [spinner removeFromSuperview];
-                        [UIView animateWithDuration:0.1 animations:^{
-                            cell.textLabel.hidden = NO;
-                            cell.textLabel.text = @"NO SENT!";
-                        } completion:^(BOOL finished) {
-                            NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
-                            [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
-                            
-                            NSString *firstObject = self.cellTitles[indexPath.row];
-                            [self.cellTitles removeObjectAtIndex:indexPath.row];
-                            [self.cellTitles insertObject:firstObject atIndex:0];
-                            
-                            [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
-                            [[NSUserDefaults standardUserDefaults] synchronize];
-                            
-                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                                cell.textLabel.text = userName;
-                                [self.tableView reloadData];
-                            });
-                        }];
-                    }
-                }];
+                            [UIView animateWithDuration:0.1 animations:^{
+                                cell.textLabel.hidden = NO;
+                                cell.textLabel.text = @"NO SENT!";
+                            } completion:^(BOOL finished) {
+                                NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
+                                [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
+                                
+                                NSString *firstObject = self.cellTitles[indexPath.row];
+                                [self.cellTitles removeObjectAtIndex:indexPath.row];
+                                [self.cellTitles insertObject:firstObject atIndex:0];
+                                
+                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                [[NSUserDefaults standardUserDefaults] synchronize];
+                                
+                                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                                    cell.textLabel.text = userName;
+                                    [self.tableView reloadData];
+                                });
+                            }];
+                        }
+                    }];
+                }
+                else
+                {
+                    [spinner stopAnimating];
+                    [spinner removeFromSuperview];
+                    
+                    [UIView animateWithDuration:0.5 animations:^{
+                        cell.textLabel.hidden = NO;
+                        cell.textLabel.text = @"BLOCKED";
+                    } completion:^(BOOL finished) {
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                            [UIView animateWithDuration:0.3 animations:^{
+                                cell.textLabel.alpha = 0.0;
+                            } completion:^(BOOL finished) {
+                                [self.cellTitles removeObjectAtIndex:indexPath.row];
+                                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                                
+                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                [[NSUserDefaults standardUserDefaults] synchronize];
+                                
+                            }];
+                        });
+                    }];
+                }
+                
             }
             else if ([objects count] == 0)
             {
@@ -403,7 +441,7 @@ typedef void(^myCompletion)(BOOL);
                 } completion:^(BOOL finished) {
                     
                     [tableView beginUpdates];
-                    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                     [tableView endUpdates];
 
                     
@@ -452,38 +490,67 @@ typedef void(^myCompletion)(BOOL);
                 user = [objects firstObject];
                 NSString *string = [NSString stringWithFormat:@"user_%@", user.objectId];
                 
-                PFUser *currentUser = [PFUser currentUser];
+                [self checkForBlockedUser:user];
                 
-                PFPush *push = [[PFPush alloc] init];
-                [push setChannel:string];
-                [push setMessage:[NSString stringWithFormat:@"%@ SENT YOU A NO!", currentUser.username]];
-                [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                    if (succeeded)
-                    {
-                        [spinner stopAnimating];
-                        [spinner removeFromSuperview];
-                        [UIView animateWithDuration:0.1 animations:^{
-                            cell.textLabel.hidden = NO;
-                            cell.textLabel.text = @"NO SENT!";
-                        } completion:^(BOOL finished) {
-                            NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
-                            [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
-                            
-                            NSString *firstObject = self.cellTitles[indexPath.row];
-                            [self.cellTitles removeObjectAtIndex:indexPath.row];
-                            [self.cellTitles insertObject:firstObject atIndex:0];
-                            
-                            [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
-                            [[NSUserDefaults standardUserDefaults] synchronize];
-                            
-                            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                                cell.textLabel.text = userName;
-                                [self.tableView reloadData];
-                            });
-                        }];
-                    }
-                }];
-            }
+                if ([self userBlockedCheck] == NO)
+                {
+                     PFUser *currentUser = [PFUser currentUser];
+                     
+                     PFPush *push = [[PFPush alloc] init];
+                     [push setChannel:string];
+                     [push setMessage:[NSString stringWithFormat:@"FROM %@", currentUser.username]];
+                     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                         if (succeeded)
+                         {
+                             [spinner stopAnimating];
+                             [spinner removeFromSuperview];
+                             [UIView animateWithDuration:0.1 animations:^{
+                                 cell.textLabel.hidden = NO;
+                                 cell.textLabel.text = @"NO SENT!";
+                             } completion:^(BOOL finished) {
+                                 NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
+                                 [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
+                                 
+                                 NSString *firstObject = self.cellTitles[indexPath.row];
+                                 [self.cellTitles removeObjectAtIndex:indexPath.row];
+                                 [self.cellTitles insertObject:firstObject atIndex:0];
+                                 
+                                 [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                 [[NSUserDefaults standardUserDefaults] synchronize];
+                                 
+                                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                                     cell.textLabel.text = userName;
+                                     [self.tableView reloadData];
+                                 });
+                             }];
+                         }
+                     }];
+
+                 }
+                else
+                {
+                    [spinner stopAnimating];
+                    [spinner removeFromSuperview];
+                    
+                    [UIView animateWithDuration:0.5 animations:^{
+                        cell.textLabel.hidden = NO;
+                        cell.textLabel.text = @"BLOCKED";
+                    } completion:^(BOOL finished) {
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                            [UIView animateWithDuration:0.3 animations:^{
+                                cell.textLabel.alpha = 0.0;
+                            } completion:^(BOOL finished) {
+                                [self.cellTitles removeObjectAtIndex:indexPath.row];
+                                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                                
+                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                [[NSUserDefaults standardUserDefaults] synchronize];
+                            }];
+                        });
+                        
+                    }];
+                }
+                            }
             else if ([objects count] == 0)
             {
                 NSLog(@"no user by that name");
@@ -507,7 +574,7 @@ typedef void(^myCompletion)(BOOL);
                     
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                         [tableView beginUpdates];
-                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                         [tableView endUpdates];
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                             cell.textLabel.alpha = 1.0;
@@ -681,28 +748,37 @@ typedef void(^myCompletion)(BOOL);
 - (void)queryForUser
 {
     NSString *userName = [[NSUserDefaults standardUserDefaults] objectForKey:@"UserName"];
+    NSMutableArray *friends = [[[NSUserDefaults standardUserDefaults] arrayForKey:@"cellTitles"] mutableCopy];
     
     if (![userName isEqualToString:self.addTextField.text])
     {
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-            //PFUser *user = [objects firstObject];
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
-            [self.cellTitles insertObject:self.addTextField.text atIndex:indexPath.row];
-            [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-            [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
-            [[NSUserDefaults standardUserDefaults] synchronize];
+        if (![friends containsObject:self.addTextField.text])
+        {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+                [self.cellTitles insertObject:self.addTextField.text atIndex:indexPath.row];
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                
+                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+                
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                     [self.tableView reloadData];
                 });
-            
-            [self.leftButton removeFromSuperview];
-            [self.middleButton removeFromSuperview];
-            [self.rightButton removeFromSuperview];
-            
-            self.slideCell.frame = CGRectMake(0, self.slideCell.frame.origin.y, self.slideCell.frame.size.width, self.slideCell.frame.size.height);
-            self.slideCell = nil;
-        });
+                
+                [self.leftButton removeFromSuperview];
+                [self.middleButton removeFromSuperview];
+                [self.rightButton removeFromSuperview];
+                
+                self.slideCell.frame = CGRectMake(0, self.slideCell.frame.origin.y, self.slideCell.frame.size.width, self.slideCell.frame.size.height);
+                self.slideCell = nil;
+            });
+        }
+        else
+        {
+            NSLog(@"name already exists");
+        }
     }
     else
     {
@@ -714,72 +790,316 @@ typedef void(^myCompletion)(BOOL);
 {
     if (recognizer.state == UIGestureRecognizerStateEnded)
     {
-        
+        //detect cell that user swiped and will animate off screen
         CGPoint swipeLocation = [recognizer locationInView:self.tableView];
         NSIndexPath *swipedIndexPath = [self.tableView indexPathForRowAtPoint:swipeLocation];
-        UITableViewCell* swipedCell = [self.tableView cellForRowAtIndexPath:swipedIndexPath];
+        UITableViewCell* cell = [self.tableView cellForRowAtIndexPath:swipedIndexPath];
+        SlideTableViewCell *swipedCell = (SlideTableViewCell *)cell;
         self.swipedCell = swipedCell;
         
-        self.optionsCell = [[UITableViewCell alloc] init];
-        self.optionsCell.frame = CGRectMake(self.view.bounds.size.width + 1, swipedCell.frame.origin.y, swipedCell.frame.size.width, swipedCell.frame.size.height);
-        [self.tableView addSubview:self.optionsCell];
+        //background table cell for options buttons
+        SlideTableViewCell *optionsCell = [[SlideTableViewCell alloc] init];
+        optionsCell.frame = CGRectMake(self.view.bounds.size.width + 1, swipedCell.frame.origin.y, swipedCell.frame.size.width, swipedCell.frame.size.height);
+        [self.tableView addSubview:optionsCell];
         
-        self.cancelButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + 1, self.optionsCell.bounds.origin.y, self.optionsCell.frame.size.width / 3, swipedCell.frame.size.height)];
         
-        self.cancelButton.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
+        //create Cancel Button
+        CustomButton *cancelButton = [[CustomButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + 1, optionsCell.bounds.origin.y, optionsCell.frame.size.width / 3, swipedCell.frame.size.height)];
         
-        [self.cancelButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
+        cancelButton.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
+        
+        [cancelButton addTarget:self action:@selector(cancel:) forControlEvents:UIControlEventTouchUpInside];
         NSAttributedString *cancelButtonTitle = [[NSAttributedString alloc] initWithString:@"CANCEL" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:25]}];
-        [self.cancelButton setAttributedTitle:cancelButtonTitle forState:UIControlStateNormal];
+        [cancelButton setAttributedTitle:cancelButtonTitle forState:UIControlStateNormal];
+        cancelButton.tag = swipedIndexPath.row;
+        cancelButton.optionsCell = optionsCell;
         
-        [self.optionsCell addSubview: self.cancelButton];
+        [optionsCell addSubview: cancelButton];
         
-        self.deleteButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + self.optionsCell.frame.size.width / 3, self.optionsCell.bounds.origin.y, self.cancelButton.frame.size.width, self.optionsCell.frame.size.height)];
-        self.deleteButton.backgroundColor = [UIColor colorWithRed:68.0/255 green:112.0/255 blue:202.0/255 alpha:1.0];
-        [self.deleteButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
+        //create Delete Button
+        CustomButton *deleteButton = [[CustomButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + optionsCell.frame.size.width / 3, optionsCell.bounds.origin.y, cancelButton.frame.size.width, optionsCell.frame.size.height)];
+        deleteButton.backgroundColor = [UIColor colorWithRed:68.0/255 green:112.0/255 blue:202.0/255 alpha:1.0];
+        [deleteButton addTarget:self action:@selector(delete:) forControlEvents:UIControlEventTouchUpInside];
         
         NSAttributedString *deleteButtonTitle = [[NSAttributedString alloc] initWithString:@"DELETE" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:25]}];
-        [self.deleteButton setAttributedTitle:deleteButtonTitle forState:UIControlStateNormal];
-        [self.optionsCell addSubview:self.deleteButton];
+        [deleteButton setAttributedTitle:deleteButtonTitle forState:UIControlStateNormal];
+        deleteButton.tag = swipedIndexPath.row;
+        deleteButton.optionsCell = optionsCell;
+        [optionsCell addSubview:deleteButton];
         
-        self.blockButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + (self.cancelButton.frame.size.width * 2), self.optionsCell.bounds.origin.y, self.cancelButton.frame.size.width, self.cancelButton.frame.size.height)];
-        self.blockButton.backgroundColor = [UIColor colorWithRed:255.0/255 green:55.0/255 blue:61.0/255 alpha:1.0];
+        //create Block Button
+        CustomButton *blockButton = [[CustomButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width + (cancelButton.frame.size.width * 2), optionsCell.bounds.origin.y, cancelButton.frame.size.width, cancelButton.frame.size.height)];
+        blockButton.backgroundColor = [UIColor colorWithRed:255.0/255 green:55.0/255 blue:61.0/255 alpha:1.0];
         
-        [self.blockButton addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
+        [blockButton addTarget:self action:@selector(block:) forControlEvents:UIControlEventTouchUpInside];
         
         NSAttributedString *blockButtonTitle = [[NSAttributedString alloc] initWithString:@"BLOCK" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:25]}];
-        [self.blockButton setAttributedTitle:blockButtonTitle forState:UIControlStateNormal];
-        [self.optionsCell addSubview:self.blockButton];
+        [blockButton setAttributedTitle:blockButtonTitle forState:UIControlStateNormal];
         
+        blockButton.tag = swipedIndexPath.row;
+        blockButton.optionsCell = optionsCell;
+        [optionsCell addSubview:blockButton];
         
+        //for use in button target action
+        swipedCell.cancelButton = cancelButton;
+        
+        //animate cell and button on screen state
         [UIView animateWithDuration:0.3 animations:^{
             
-            NSLog(@"swipedCell Y: %f", swipedCell.frame.origin.y);
-            self.optionsCell.frame = CGRectMake(self.view.bounds.origin.x, swipedCell.frame.origin.y, self.optionsCell.frame.size.width, self.optionsCell.frame.size.height);
-            NSLog(@"optionsCell Y: %f", self.optionsCell.frame.origin.y);
-            self.cancelButton.frame = CGRectMake(self.view.bounds.origin.x, self.optionsCell.bounds.origin.y, self.cancelButton.frame.size.width, swipedCell.frame.size.height);
-            self.deleteButton.frame = CGRectMake(self.optionsCell.frame.origin.x + self.optionsCell.frame.size.width / 3, self.optionsCell.bounds.origin.y, self.deleteButton.frame.size.width, self.deleteButton.frame.size.height);
-            self.blockButton.frame = CGRectMake(self.optionsCell.frame.origin.x + (self.blockButton.frame.size.width * 2), self.blockButton.bounds.origin.y, self.blockButton.frame.size.width, self.blockButton.frame.size.height);
+            optionsCell.frame = CGRectMake(self.view.bounds.origin.x, swipedCell.frame.origin.y, optionsCell.frame.size.width, optionsCell.frame.size.height);
+            
+            cancelButton.frame = CGRectMake(self.view.bounds.origin.x, optionsCell.bounds.origin.y, cancelButton.frame.size.width, swipedCell.frame.size.height);
+            
+            deleteButton.frame = CGRectMake(self.view.bounds.origin.x + cancelButton.frame.size.width, swipedCell.bounds.origin.y, deleteButton.frame.size.width, deleteButton.frame.size.height);
+            
+            blockButton.frame = CGRectMake(self.view.bounds.origin.x + (cancelButton.frame.size.width * 2), blockButton.bounds.origin.y, blockButton.frame.size.width, blockButton.frame.size.height);
             
             swipedCell.frame = CGRectMake(-swipedCell.frame.size.width, swipedCell.frame.origin.y, swipedCell.frame.size.width, swipedCell.frame.size.height);
         }];
     }
 }
 
-- (void)cancel
+- (void)block:(CustomButton *)sender
 {
+    SlideTableViewCell *optionsCell = sender.optionsCell;
     
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:sender.tag inSection:0];
     
-    self.swipedCell.frame = CGRectMake(self.view.bounds.size.width + 1, self.swipedCell.frame.origin.y, self.swipedCell.frame.size.width, self.swipedCell.frame.size.height);
+    SlideTableViewCell *cell = (SlideTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+    
+    cell.frame = CGRectMake(self.view.bounds.size.width, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
+    
     [UIView animateWithDuration:0.3 animations:^{
-        self.optionsCell.alpha = 0.0;
-        self.swipedCell.frame = CGRectMake(self.view.bounds.origin.x, self.swipedCell.frame.origin.y, self.swipedCell.frame.size.width, self.swipedCell.frame.size.height);
+        
+        cell.frame = CGRectMake(0, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
+        optionsCell.alpha = 0.0;
+        cell.cancelButton.alpha = 0.0;
         
     } completion:^(BOOL finished) {
-        [self.swipedCell removeFromSuperview];
+        
+        [cell.cancelButton removeFromSuperview];
+        [optionsCell removeFromSuperview];
+        
+        //[self.blockedUsers addObject:cell.textLabel.text];
+        [self setBlockeduser:cell.textLabel.text atIndex:sender.tag];
     }];
-   
 }
+
+-(void)delete:(CustomButton *)sender
+{
+    SlideTableViewCell *optionsCell = sender.optionsCell;
+
+    [self.cellTitles removeObjectAtIndex:sender.tag];
+   
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:sender.tag inSection:0];
+    [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        
+        optionsCell.alpha = 0.0;
+        
+    } completion:^(BOOL finished) {
+        
+        [optionsCell removeFromSuperview];
+        [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }];
+    
+}
+
+- (void)cancel:(CustomButton *)sender
+{
+    SlideTableViewCell *optionsCell = sender.optionsCell;
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:sender.tag inSection:0];
+    
+    SlideTableViewCell *cell = (SlideTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+    
+    cell.frame = CGRectMake(self.view.bounds.size.width, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        
+        cell.frame = CGRectMake(0, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
+        optionsCell.alpha = 0.0;
+        cell.cancelButton.alpha = 0.0;
+        
+    } completion:^(BOOL finished) {
+        
+        [cell.cancelButton removeFromSuperview];
+        [optionsCell removeFromSuperview];
+    }];
+}
+
+#pragma mark - Blocked Users
+
+- (void)setBlockeduser:(NSString *)username atIndex:(NSUInteger)index
+{
+    PFQuery *query = [PFUser query];
+    [query whereKey:@"username" equalTo:username];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        
+        if (objects)
+        {
+            PFUser *user = [objects firstObject];
+            
+            PFQuery *queryObject = [PFQuery queryWithClassName:@"Relationships"];
+            [queryObject whereKey:@"user" equalTo:user];
+            [queryObject findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+                
+                if (objects)
+                {
+                    PFObject *relationships = [objects firstObject];
+                    
+                    PFUser *currentUser = [PFUser currentUser];
+                    
+                    NSArray *blockedUsersOnServer = relationships[@"blockedUsers"];
+                    if (![blockedUsersOnServer containsObject:currentUser.objectId])
+                    {
+                        [relationships addObject:currentUser.objectId forKey:@"blockedUsers"];
+                        [relationships saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                            
+                            if (error)
+                            {
+                                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"ERROR BLOCKING USER" message:@"THERE WAS AN ERROR BLOCKING THIS USER.\nPLEASE TRY AGAIN." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+                                [alert show];
+                            }
+                            
+                            else if (succeeded)
+                            {
+                                NSLog(@"success");
+                                
+                                if (![self.blockedUsers containsObject:user.username])
+                                {
+                                    [self.blockedUsers addObject:user.username];
+                                    [[NSUserDefaults standardUserDefaults] setObject:self.blockedUsers forKey:@"blockedUsers"];
+                                    NSLog(@"user already blocked");
+                                }
+                                
+                                [self.cellTitles removeObjectAtIndex:index];
+                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                
+                                [[NSUserDefaults standardUserDefaults] synchronize];
+                                
+                                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+                                
+                                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                            }
+                            
+                            else
+                            {
+                                NSLog(@"else");
+                            }
+                        }];
+                    }
+                    
+                    else
+                    {
+                        NSLog(@"already blocked on prase");
+                        
+                        NSArray *blockedUsers = [[NSUserDefaults standardUserDefaults] arrayForKey:@"blockedUsers"];
+                        
+                        if (![blockedUsers containsObject:user.username])
+                        {
+                            [self.blockedUsers addObject:user.username];
+                            [[NSUserDefaults standardUserDefaults] setObject:self.blockedUsers forKey:@"blockedUsers"];
+                            NSLog(@"user blocked");
+                        }
+                        else
+                        {
+                            NSLog(@"user already blocked");
+                        }
+                        
+                        [self.cellTitles removeObjectAtIndex:index];
+                        [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                        
+                        [[NSUserDefaults standardUserDefaults] synchronize];
+                        
+                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
+                        
+                        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                    }
+                }
+            }];
+        }
+        
+        else
+        {
+            NSLog(@"error %@", error);
+        }
+    }];
+}
+
+- (void)checkForBlockedUser:(PFUser *)user
+{
+    NSLog(@"checking for block");
+    PFUser *currentUser = [PFUser currentUser];
+    PFQuery *query = [PFQuery queryWithClassName:@"Relationships"];
+    [query whereKey:@"user" equalTo:currentUser];
+    //[query whereKey:@"blockedUsers" containsString:currentUser.objectId];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (objects)
+        {
+            NSLog(@"objects found for block");
+            PFObject *relationships = [objects firstObject];
+            NSArray *array = relationships[@"blockedUsers"];
+            if ([array containsObject:user.objectId])
+            {
+                isBLocked = YES;
+                NSLog(@"blocked");
+            }
+            else
+            {
+                isBLocked = NO;
+                NSLog(@"not blocked");
+            }
+            
+//            for (int i = 0; i < [array count]; i++)
+//            {
+//                NSLog(@"inside array");
+//                NSString *objectId = relationships[@"blockedUsers"][i];
+//                if ([objectId isEqualToString:currentUser.objectId])
+//                {
+//                    isBLocked = YES;
+//                    NSLog(@"blocked");
+//                }
+//                else
+//                {
+//                    isBLocked = NO;
+//                    NSLog(@"not blocked");
+//                }
+//            }
+            
+            
+        }
+        else if (error)
+        {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"ERROR SENDING MESSAGE" message:@"THERE WAS AN ERROR SENDING YOUR MESSAGE.\nPLEASE TRY AGAIN" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+            [alert show];
+            
+            isBLocked = YES;
+        }
+        else
+        {
+            isBLocked = NO;
+        }
+    }];
+}
+
+- (BOOL)userBlockedCheck
+{
+    NSLog(@"userBlockedCheck");
+    if (isBLocked) {
+        return YES;
+        NSLog(@"return no");
+    }
+    else
+    {
+        return NO;
+        NSLog(@"return yes");
+    }
+}
+
+
 
 #pragma mark - Blocks
 
@@ -800,7 +1120,10 @@ typedef void(^myCompletion)(BOOL);
     return YES;
 }
 
-
+-(void)viewWillDisappear:(BOOL)animated
+{
+    
+}
 
 
 
