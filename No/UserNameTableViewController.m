@@ -156,6 +156,7 @@
         if (!error)
         {
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"FirstTime"];
+            [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"FriendCellRemoved"];
             [[NSUserDefaults standardUserDefaults] setObject:user.username forKey:@"UserName"];
             [[NSUserDefaults standardUserDefaults] setObject:user.password forKey:@"Password"];
             [[NSUserDefaults standardUserDefaults] synchronize];

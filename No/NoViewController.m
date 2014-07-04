@@ -11,9 +11,11 @@
 #import "CustomButton.h"
 #import "SlideTableViewCell.h"
 
+#import <MessageUI/MessageUI.h>
+
 typedef void(^myCompletion)(BOOL);
 
-@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, ShareTableViewControllerDelegate>
+@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, MFMailComposeViewControllerDelegate, ShareTableViewControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
@@ -43,6 +45,7 @@ typedef void(^myCompletion)(BOOL);
     CGPoint touchLocation;
     
     __block BOOL isBLocked;
+    BOOL friendCellRemoved;
 }
 
 -(NSMutableArray *)cellTitles
@@ -112,7 +115,7 @@ typedef void(^myCompletion)(BOOL);
     
     if (![[NSUserDefaults standardUserDefaults] objectForKey:@"cellTitles"])
     {
-        self.cellTitles = [@[@"FIND FREINDS", @"INVITE", @"+"] mutableCopy];
+        self.cellTitles = [@[@"FIND FRIENDS", @"INVITE", @"+"] mutableCopy];
         [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }
@@ -122,6 +125,7 @@ typedef void(^myCompletion)(BOOL);
     }
     
     self.blockedUsers = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] arrayForKey:@"blockedUsers"]];
+    friendCellRemoved = [[NSUserDefaults standardUserDefaults] boolForKey:@"FriendCellRemoved"];
     
     [super viewWillAppear:animated];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -256,8 +260,8 @@ typedef void(^myCompletion)(BOOL);
         
         self.leftButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.origin.x - self.slideCell.frame.size.width , self.slideCell.bounds.origin.y, self.slideCell.frame.size.width / 3, self.slideCell.frame.size.height)];
         self.leftButton.backgroundColor = [UIColor colorWithRed:68.0/255 green:112.0/255 blue:202.0/255 alpha:1.0];
-        [self.leftButton addTarget:self action:@selector(log) forControlEvents:UIControlEventTouchUpInside];
-        NSAttributedString *leftButtonTitle = [[NSAttributedString alloc] initWithString:@"SMS" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]}];
+        [self.leftButton addTarget:self action:@selector(mail) forControlEvents:UIControlEventTouchUpInside];
+        NSAttributedString *leftButtonTitle = [[NSAttributedString alloc] initWithString:@"MAIL" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]}];
         [self.leftButton setAttributedTitle:leftButtonTitle forState:UIControlStateNormal];
         self.leftButton.alpha = 0.0;
         [self.slideCell addSubview:self.leftButton];
@@ -330,18 +334,27 @@ typedef void(^myCompletion)(BOOL);
     }
     else if ([self.cellTitles count] > 4 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 4))
     {
-        
         return indexPath;
     }
     else
-        return nil;
+    {
+        if (friendCellRemoved == YES)
+        {
+            return indexPath;
+        }
+        else
+        {
+            return nil;
+        }
+    }
+    
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ([self.cellTitles count] > 4 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 4))
+    //if a friend exists and the user taps on a row with a friend in it
+    if ([self.cellTitles count] >= 4 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 4) && friendCellRemoved == NO)
     {
-        NSLog(@"send push 2");
         UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
         cell.textLabel.hidden = YES;
         
@@ -444,23 +457,13 @@ typedef void(^myCompletion)(BOOL);
                     [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                     [tableView endUpdates];
 
-                    
-//                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-//                        [tableView beginUpdates];
-//                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-//                        [tableView endUpdates];
                          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                         cell.textLabel.alpha = 1.0;
                          });
-
-  //                  });
-                    
                 }];
             }
             else
             {
-                NSLog(@"error %@", error);
-                
                 [spinner stopAnimating];
                 [spinner removeFromSuperview];
                 
@@ -470,7 +473,7 @@ typedef void(^myCompletion)(BOOL);
         }];
     }
     
-    else if ([self.cellTitles count] == 4 && indexPath.row == 0)
+    else if (friendCellRemoved == YES && [self.cellTitles count] >= 3 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 3))
     {
         UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
         cell.textLabel.hidden = YES;
@@ -489,44 +492,43 @@ typedef void(^myCompletion)(BOOL);
             {
                 user = [objects firstObject];
                 NSString *string = [NSString stringWithFormat:@"user_%@", user.objectId];
-                
                 [self checkForBlockedUser:user];
                 
                 if ([self userBlockedCheck] == NO)
                 {
-                     PFUser *currentUser = [PFUser currentUser];
-                     
-                     PFPush *push = [[PFPush alloc] init];
-                     [push setChannel:string];
-                     [push setMessage:[NSString stringWithFormat:@"FROM %@", currentUser.username]];
-                     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                         if (succeeded)
-                         {
-                             [spinner stopAnimating];
-                             [spinner removeFromSuperview];
-                             [UIView animateWithDuration:0.1 animations:^{
-                                 cell.textLabel.hidden = NO;
-                                 cell.textLabel.text = @"NO SENT!";
-                             } completion:^(BOOL finished) {
-                                 NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
-                                 [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
-                                 
-                                 NSString *firstObject = self.cellTitles[indexPath.row];
-                                 [self.cellTitles removeObjectAtIndex:indexPath.row];
-                                 [self.cellTitles insertObject:firstObject atIndex:0];
-                                 
-                                 [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
-                                 [[NSUserDefaults standardUserDefaults] synchronize];
-                                 
-                                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                                     cell.textLabel.text = userName;
-                                     [self.tableView reloadData];
-                                 });
-                             }];
-                         }
-                     }];
-
-                 }
+                    PFUser *currentUser = [PFUser currentUser];
+                    
+                    PFPush *push = [[PFPush alloc] init];
+                    [push setChannel:string];
+                    
+                    [push setMessage:[NSString stringWithFormat:@"FROM %@", currentUser.username]];
+                    [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                        if (succeeded)
+                        {
+                            [spinner stopAnimating];
+                            [spinner removeFromSuperview];
+                            [UIView animateWithDuration:0.1 animations:^{
+                                cell.textLabel.hidden = NO;
+                                cell.textLabel.text = @"NO SENT!";
+                            } completion:^(BOOL finished) {
+                                NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
+                                [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
+                                
+                                NSString *firstObject = self.cellTitles[indexPath.row];
+                                [self.cellTitles removeObjectAtIndex:indexPath.row];
+                                [self.cellTitles insertObject:firstObject atIndex:0];
+                                
+                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+                                [[NSUserDefaults standardUserDefaults] synchronize];
+                                
+                                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                                    cell.textLabel.text = userName;
+                                    [self.tableView reloadData];
+                                });
+                            }];
+                        }
+                    }];
+                }
                 else
                 {
                     [spinner stopAnimating];
@@ -545,16 +547,15 @@ typedef void(^myCompletion)(BOOL);
                                 
                                 [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
                                 [[NSUserDefaults standardUserDefaults] synchronize];
+                                
                             }];
                         });
-                        
                     }];
                 }
-                            }
+                
+            }
             else if ([objects count] == 0)
             {
-                NSLog(@"no user by that name");
-                
                 [spinner stopAnimating];
                 [spinner removeFromSuperview];
                 
@@ -572,21 +573,17 @@ typedef void(^myCompletion)(BOOL);
                     cell.textLabel.text = @"NO SUCH USER";
                 } completion:^(BOOL finished) {
                     
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                        [tableView beginUpdates];
-                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-                        [tableView endUpdates];
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-                            cell.textLabel.alpha = 1.0;
-                        });
-                    });
+                    [tableView beginUpdates];
+                    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                    [tableView endUpdates];
                     
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+                        cell.textLabel.alpha = 1.0;
+                    });
                 }];
             }
             else
             {
-                NSLog(@"error %@", error);
-                
                 [spinner stopAnimating];
                 [spinner removeFromSuperview];
                 
@@ -595,6 +592,129 @@ typedef void(^myCompletion)(BOOL);
             }
         }];
     }
+    
+    //if only 1 friend exists and the user taps on a row with a friend in it
+//    else if ([self.cellTitles count] == 4 && indexPath.row == 0)
+//    {
+//        UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+//        cell.textLabel.hidden = YES;
+//        
+//        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+//        spinner.center = CGPointMake(cell.frame.size.width / 2, cell.frame.size.height / 2);
+//        [cell addSubview:spinner];
+//        [spinner startAnimating];
+//        
+//        __block PFUser *user;
+//        NSString *userName = self.cellTitles[indexPath.row];
+//        PFQuery *query = [PFUser query];
+//        [query whereKey:@"username" equalTo:userName];
+//        [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+//            if ([objects firstObject] != nil)
+//            {
+//                user = [objects firstObject];
+//                NSString *string = [NSString stringWithFormat:@"user_%@", user.objectId];
+//                
+//                [self checkForBlockedUser:user];
+//                
+//                if ([self userBlockedCheck] == NO)
+//                {
+//                     PFUser *currentUser = [PFUser currentUser];
+//                     
+//                     PFPush *push = [[PFPush alloc] init];
+//                     [push setChannel:string];
+//                     [push setMessage:[NSString stringWithFormat:@"FROM %@", currentUser.username]];
+//                     [push sendPushInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+//                         if (succeeded)
+//                         {
+//                             [spinner stopAnimating];
+//                             [spinner removeFromSuperview];
+//                             [UIView animateWithDuration:0.1 animations:^{
+//                                 cell.textLabel.hidden = NO;
+//                                 cell.textLabel.text = @"NO SENT!";
+//                             } completion:^(BOOL finished) {
+//                                 NSIndexPath *indexPath2 = [NSIndexPath indexPathForRow:0 inSection:0];
+//                                 [self.tableView moveRowAtIndexPath:indexPath toIndexPath:indexPath2];
+//                                 
+//                                 NSString *firstObject = self.cellTitles[indexPath.row];
+//                                 [self.cellTitles removeObjectAtIndex:indexPath.row];
+//                                 [self.cellTitles insertObject:firstObject atIndex:0];
+//                                 
+//                                 [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+//                                 [[NSUserDefaults standardUserDefaults] synchronize];
+//                                 
+//                                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+//                                     cell.textLabel.text = userName;
+//                                     [self.tableView reloadData];
+//                                 });
+//                             }];
+//                         }
+//                     }];
+//
+//                 }
+//                else
+//                {
+//                    [spinner stopAnimating];
+//                    [spinner removeFromSuperview];
+//                    
+//                    [UIView animateWithDuration:0.5 animations:^{
+//                        cell.textLabel.hidden = NO;
+//                        cell.textLabel.text = @"BLOCKED";
+//                    } completion:^(BOOL finished) {
+//                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+//                            [UIView animateWithDuration:0.3 animations:^{
+//                                cell.textLabel.alpha = 0.0;
+//                            } completion:^(BOOL finished) {
+//                                [self.cellTitles removeObjectAtIndex:indexPath.row];
+//                                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+//                                
+//                                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+//                                [[NSUserDefaults standardUserDefaults] synchronize];
+//                            }];
+//                        });
+//                        
+//                    }];
+//                }
+//                            }
+//            else if ([objects count] == 0)
+//            {
+//                [spinner stopAnimating];
+//                [spinner removeFromSuperview];
+//                
+//                [self.cellTitles removeObjectAtIndex:indexPath.row];
+//                
+//                [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+//                [[NSUserDefaults standardUserDefaults] synchronize];
+//                
+//                cell.textLabel.alpha = 1.0;
+//                cell.textLabel.hidden = NO;
+//                
+//                [UIView animateWithDuration:1.0 animations:^{
+//                    cell.textLabel.font = [UIFont fontWithName:@"AvenirNext-Bold" size:35.0];
+//                    cell.textLabel.alpha = 0.0;
+//                    cell.textLabel.text = @"NO SUCH USER";
+//                } completion:^(BOOL finished) {
+//                    
+//                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+//                        [tableView beginUpdates];
+//                        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+//                        [tableView endUpdates];
+//                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+//                            cell.textLabel.alpha = 1.0;
+//                        });
+//                    });
+//                    
+//                }];
+//            }
+//            else
+//            {
+//                [spinner stopAnimating];
+//                [spinner removeFromSuperview];
+//                
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"NO FAILED" message:@"THERE WAS AN ERROR SENDING YOUR NO.  PLEASE TRY AGAIN." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+//                [alert show];
+//            }
+//        }];
+//    }
 
 
 }
@@ -636,6 +756,49 @@ typedef void(^myCompletion)(BOOL);
     }
 }
 
+- (void)mail
+{
+    
+    __block NSString *URL = [[NSString alloc] init];
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"AppURL"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (objects)
+        {
+            PFObject *object = [objects firstObject];
+            URL = object[@"itunesURL"];
+            [self presentMailSheetWithURL:URL];
+        }
+        else
+        {
+            URL = @"www.itunes.com";
+            [self presentMailSheetWithURL:URL];
+        }
+    }];
+    
+    
+}
+
+- (void)presentMailSheetWithURL:(NSString *)URL
+{
+    PFUser *currentUser = [PFUser currentUser];
+
+    UIImage *image = [self screenShotForSocialMedia];
+    NSData *data = [NSData dataWithData:UIImagePNGRepresentation(image)];
+    
+    NSString *subject = @"NO";
+    //NSString *URL = @"www.apple.com/no";
+    NSString *body = [NSString stringWithFormat:@"I WANNA NO YOU!\nADD MY NO USERNAME: %@.\n(IF YOU DON'T HAVE THE NO APP GET IT HERE: %@)", currentUser.username, URL];
+    
+    MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
+    mailController.mailComposeDelegate = self;
+    [mailController setSubject:subject];
+    [mailController setMessageBody:body isHTML:NO];
+    [mailController addAttachmentData:data mimeType:@"image/png" fileName:@"NO"];
+    
+    [self presentViewController:mailController animated:YES completion:nil];
+}
+
 - (UIImage *)screenShotForSocialMedia
 {
     UIGraphicsBeginImageContext(self.view.bounds.size);
@@ -658,10 +821,52 @@ typedef void(^myCompletion)(BOOL);
 {
     [textField resignFirstResponder];
     
-    if (![textField.text isEqualToString:@""])
-    {
-            [self queryForUser];
+    NSString *rawString = [textField text];
+    NSCharacterSet *whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+    NSString *trimmed = [rawString stringByTrimmingCharactersInSet:whitespace];
+    NSRange range = [rawString rangeOfCharacterFromSet:whitespace];
+
+    if ([trimmed length] == 0) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"NO" message:nil delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        [alert show];
     }
+    else if (range.location != NSNotFound) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"NO" message:@"PLEASE REMOVE THE SPACES FROM YOUR NAME AND TRY AGAIN." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+        [alert show];
+    }
+    else
+    {
+        if (friendCellRemoved == NO && [self.cellTitles count] < 6)
+        {
+            [self queryForUser];
+            NSLog(@"if");
+        }
+        else if (friendCellRemoved == NO && [self.cellTitles count] >= 6)
+        {
+            NSLog(@"else if");
+            [self.cellTitles removeObjectAtIndex:[self.cellTitles count] - 3];
+            
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationMiddle];
+            
+            friendCellRemoved = YES;
+            
+            [[NSUserDefaults standardUserDefaults] setObject:self.cellTitles forKey:@"cellTitles"];
+            [[NSUserDefaults standardUserDefaults] setBool:friendCellRemoved forKey:@"FriendCellRemoved"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            
+            [self queryForUser];
+        }
+        else
+        {
+            [self queryForUser];
+        }
+    }
+    
+//    if (![textField.text isEqualToString:@""])
+//    {
+//            [self queryForUser];
+//    }
     
     [self resetAddCell];
     
@@ -689,25 +894,6 @@ typedef void(^myCompletion)(BOOL);
     
     self.tableView.contentInset = contentInsets;
     [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
-   
-//    NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
-//    [UIView animateWithDuration:rate.floatValue animations:^{
-//        self.tableView.contentInset = contentInsets;
-//        [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
-//    }];
-    
-    
-    //scrollView.scrollIndicatorInsets = contentInsets;
-    
-    
-    // If active text field is hidden by keyboard, scroll it so it's visible
-    // Your app might not need or want this behavior.
-//    CGRect aRect = self.view.frame;
-//    aRect.size.height -= kbSize.height;
-//    if (!CGRectContainsPoint(aRect, self.addTextField.frame.origin) ) {
-//        [self.tableView scrollRectToVisible:self.addTextField.frame animated:YES];
-//    }
-
 }
 
 - (void)keyboardWillBeHidden:(NSNotification*)aNotification
@@ -733,6 +919,13 @@ typedef void(^myCompletion)(BOOL);
     [self.tableView.delegate tableView:self.tableView willSelectRowAtIndexPath:indexPath];
 }
 
+#pragma mark - MFMailComposeControllerDelegate
+
+-(void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
+{
+    [self dismissViewControllerAnimated:controller completion:nil];
+}
+
 
 #pragma mark - Helper Methods
 
@@ -756,7 +949,19 @@ typedef void(^myCompletion)(BOOL);
         {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
                 
-                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+                NSIndexPath *indexPath;
+                
+                if (friendCellRemoved == YES)
+                {
+                    indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
+
+                }
+                else
+                {
+                    indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 3 inSection:0];
+
+                }
+                
                 [self.cellTitles insertObject:self.addTextField.text atIndex:indexPath.row];
                 [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 
@@ -773,6 +978,8 @@ typedef void(^myCompletion)(BOOL);
                 
                 self.slideCell.frame = CGRectMake(0, self.slideCell.frame.origin.y, self.slideCell.frame.size.width, self.slideCell.frame.size.height);
                 self.slideCell = nil;
+                
+                [self resetAddCell];
             });
         }
         else
@@ -972,7 +1179,6 @@ typedef void(^myCompletion)(BOOL);
                                 {
                                     [self.blockedUsers addObject:user.username];
                                     [[NSUserDefaults standardUserDefaults] setObject:self.blockedUsers forKey:@"blockedUsers"];
-                                    NSLog(@"user already blocked");
                                 }
                                 
                                 [self.cellTitles removeObjectAtIndex:index];
@@ -994,15 +1200,12 @@ typedef void(^myCompletion)(BOOL);
                     
                     else
                     {
-                        NSLog(@"already blocked on prase");
-                        
                         NSArray *blockedUsers = [[NSUserDefaults standardUserDefaults] arrayForKey:@"blockedUsers"];
                         
                         if (![blockedUsers containsObject:user.username])
                         {
                             [self.blockedUsers addObject:user.username];
                             [[NSUserDefaults standardUserDefaults] setObject:self.blockedUsers forKey:@"blockedUsers"];
-                            NSLog(@"user blocked");
                         }
                         else
                         {
@@ -1031,11 +1234,10 @@ typedef void(^myCompletion)(BOOL);
 
 - (void)checkForBlockedUser:(PFUser *)user
 {
-    NSLog(@"checking for block");
     PFUser *currentUser = [PFUser currentUser];
+    
     PFQuery *query = [PFQuery queryWithClassName:@"Relationships"];
     [query whereKey:@"user" equalTo:currentUser];
-    //[query whereKey:@"blockedUsers" containsString:currentUser.objectId];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (objects)
         {
@@ -1045,31 +1247,11 @@ typedef void(^myCompletion)(BOOL);
             if ([array containsObject:user.objectId])
             {
                 isBLocked = YES;
-                NSLog(@"blocked");
             }
             else
             {
                 isBLocked = NO;
-                NSLog(@"not blocked");
             }
-            
-//            for (int i = 0; i < [array count]; i++)
-//            {
-//                NSLog(@"inside array");
-//                NSString *objectId = relationships[@"blockedUsers"][i];
-//                if ([objectId isEqualToString:currentUser.objectId])
-//                {
-//                    isBLocked = YES;
-//                    NSLog(@"blocked");
-//                }
-//                else
-//                {
-//                    isBLocked = NO;
-//                    NSLog(@"not blocked");
-//                }
-//            }
-            
-            
         }
         else if (error)
         {
@@ -1087,43 +1269,24 @@ typedef void(^myCompletion)(BOOL);
 
 - (BOOL)userBlockedCheck
 {
-    NSLog(@"userBlockedCheck");
     if (isBLocked) {
         return YES;
-        NSLog(@"return no");
     }
     else
     {
         return NO;
-        NSLog(@"return yes");
     }
 }
 
 
 
-#pragma mark - Blocks
-
-- (void)animateCell:(myCompletion) compblock
-{
-    compblock(YES);
-}
-
-
-
-- (void)log
-{
-    NSLog(@"button pressed");
-}
 
 - (BOOL)prefersStatusBarHidden
 {
     return YES;
 }
 
--(void)viewWillDisappear:(BOOL)animated
-{
-    
-}
+
 
 
 

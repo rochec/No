@@ -8,7 +8,9 @@
 
 #import "ShareTableViewController.h"
 
-@interface ShareTableViewController () <UITextFieldDelegate>
+#import <MessageUI/MessageUI.h>
+
+@interface ShareTableViewController () <UITextFieldDelegate, MFMailComposeViewControllerDelegate>
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
 @property (strong, nonatomic) UITextField *addTextField;
@@ -186,8 +188,8 @@
         
         UIButton *leftButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.origin.x - slideCell.frame.size.width , slideCell.bounds.origin.y, slideCell.frame.size.width / 3, slideCell.frame.size.height)];
         leftButton.backgroundColor = [UIColor colorWithRed:68.0/255 green:112.0/255 blue:202.0/255 alpha:1.0];
-        [leftButton addTarget:self action:@selector(log) forControlEvents:UIControlEventTouchUpInside];
-        NSAttributedString *leftButtonTitle = [[NSAttributedString alloc] initWithString:@"SMS" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]}];
+        [leftButton addTarget:self action:@selector(mail) forControlEvents:UIControlEventTouchUpInside];
+        NSAttributedString *leftButtonTitle = [[NSAttributedString alloc] initWithString:@"MAIL" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:30]}];
         [leftButton setAttributedTitle:leftButtonTitle forState:UIControlStateNormal];
         leftButton.alpha = 0.0;
         [slideCell addSubview:leftButton];
@@ -304,6 +306,49 @@
     }
 }
 
+- (void)mail
+{
+    
+    __block NSString *URL = [[NSString alloc] init];
+    
+    PFQuery *query = [PFQuery queryWithClassName:@"AppURL"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (objects)
+        {
+            PFObject *object = [objects firstObject];
+            URL = object[@"itunesURL"];
+            [self presentMailSheetWithURL:URL];
+        }
+        else
+        {
+            URL = @"www.itunes.com";
+            [self presentMailSheetWithURL:URL];
+        }
+    }];
+    
+    
+}
+
+- (void)presentMailSheetWithURL:(NSString *)URL
+{
+    PFUser *currentUser = [PFUser currentUser];
+    
+    UIImage *image = [self screenShotForSocialMedia];
+    NSData *data = [NSData dataWithData:UIImagePNGRepresentation(image)];
+    
+    NSString *subject = @"NO";
+    //NSString *URL = @"www.apple.com/no";
+    NSString *body = [NSString stringWithFormat:@"I WANNA NO YOU!\nADD MY NO USERNAME: %@.\n(IF YOU DON'T HAVE THE NO APP GET IT HERE: %@)", currentUser.username, URL];
+    
+    MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
+    mailController.mailComposeDelegate = self;
+    [mailController setSubject:subject];
+    [mailController setMessageBody:body isHTML:NO];
+    [mailController addAttachmentData:data mimeType:@"image/png" fileName:@"NO"];
+    
+    [self presentViewController:mailController animated:YES completion:nil];
+}
+
 - (UIImage *)screenShotForSocialMedia
 {
     UIGraphicsBeginImageContext(self.view.bounds.size);
@@ -389,6 +434,13 @@
         self.tableView.contentInset = contentInsets;
         self.tableView.scrollIndicatorInsets = contentInsets;
     }];
+}
+
+#pragma marki - MFMailComposeControllerDelegate
+
+-(void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
+{
+    [self dismissViewControllerAnimated:controller completion:nil];
 }
 
 
