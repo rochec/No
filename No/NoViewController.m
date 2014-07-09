@@ -243,21 +243,19 @@ typedef void(^myCompletion)(BOOL);
 
 -(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    //get current cell being interacted with
     UITableViewCell * cell = [self.tableView cellForRowAtIndexPath:indexPath];
 
-
+    //if Invite cell
     if (indexPath.row == [self.cellTitles count] - 2)
     {
-        //get current cell
         
         //add new cell offscreen
         self.slideCell = [[UITableViewCell alloc] init];
         self.slideCell.frame = CGRectMake(-self.view.bounds.size.width, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
         [self.tableView addSubview:self.slideCell];
         
-        NSLog(@"cell y: %f", cell.frame.origin.y);
-        NSLog(@"slideCell y: %f", self.slideCell.frame.origin.y);
-        
+        //add Mail button
         self.leftButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.origin.x - self.slideCell.frame.size.width , self.slideCell.bounds.origin.y, self.slideCell.frame.size.width / 3, self.slideCell.frame.size.height)];
         self.leftButton.backgroundColor = [UIColor colorWithRed:68.0/255 green:112.0/255 blue:202.0/255 alpha:1.0];
         [self.leftButton addTarget:self action:@selector(mail) forControlEvents:UIControlEventTouchUpInside];
@@ -266,6 +264,7 @@ typedef void(^myCompletion)(BOOL);
         self.leftButton.alpha = 0.0;
         [self.slideCell addSubview:self.leftButton];
         
+        //add Twitter button
         self.middleButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.origin.x - (self.slideCell.frame.size.width / 3) * 2, self.slideCell.bounds.origin.y, self.slideCell.frame.size.width / 3, self.slideCell.frame.size.height)];
         self.middleButton.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
         [self.middleButton addTarget:self action:@selector(postToTwitter) forControlEvents:UIControlEventTouchUpInside];
@@ -274,6 +273,7 @@ typedef void(^myCompletion)(BOOL);
         self.middleButton.alpha = 0.0;
         [self.slideCell addSubview:self.middleButton];
         
+        //add Facebook button
         self.rightButton = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.origin.x - self.slideCell.frame.size.width / 3, self.slideCell.bounds.origin.y, self.slideCell.frame.size.width / 3, self.slideCell.frame.size.height)];
         self.rightButton.backgroundColor = [UIColor colorWithRed:255.0/255 green:55.0/255 blue:61.0/255 alpha:1.0];
         [self.rightButton addTarget:self action:@selector(postToFacebook) forControlEvents:UIControlEventTouchUpInside];
@@ -301,6 +301,7 @@ typedef void(^myCompletion)(BOOL);
         }];
         return nil;
     }
+    //if add friend cell
     else if (indexPath.row == [self.cellTitles count] - 1)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -328,11 +329,11 @@ typedef void(^myCompletion)(BOOL);
         
         return indexPath;
     }
-    else if ([self.cellTitles count] == 4 && indexPath.row == 0)
-    {
-        return indexPath;
-    }
-    else if ([self.cellTitles count] > 4 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 4))
+//    else if ([self.cellTitles count] == 4 && indexPath.row == 0)
+//    {
+//        return indexPath;
+//    }
+    else if ([self.cellTitles count] >= 4 && (indexPath.row >= 0 && indexPath.row <= [self.cellTitles count] - 4))
     {
         return indexPath;
     }
