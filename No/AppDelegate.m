@@ -10,7 +10,7 @@
 #import "NoViewController.h"
 #import "UserNameTableViewController.h"
 
-
+#import <iAd/iAd.h>
 #import <Parse/Parse.h>
 
 @interface AppDelegate () <UINavigationControllerDelegate>
@@ -28,7 +28,7 @@
     [Parse setApplicationId:@"8QTzs2lrBwlEunCiprL9YJKTxbVR1yrUczlKMDRZ"
                   clientKey:@"1HsIQgbrMzR9wSZ7JB9lbLHk9ip6tQTOAJ40DgBW"];
     
-    
+        //[UIViewController prepareInterstitialAds];
 
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     

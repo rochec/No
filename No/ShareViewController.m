@@ -1,19 +1,22 @@
 //
-//  ShareTableViewController.m
+//  ShareViewController.m
 //  No
 //
-//  Created by Chris Roche on 6/20/14.
+//  Created by Chris Roche on 7/13/14.
 //  Copyright (c) 2014 Chris Roche. All rights reserved.
 //
 
-#import "ShareTableViewController.h"
+#import "ShareViewController.h"
 #import "NoViewController.h"
 #import "UnblockTableViewController.h"
 
 #import <MessageUI/MessageUI.h>
 #import <iAd/iAd.h>
 
-@interface ShareTableViewController () <UITextFieldDelegate, MFMailComposeViewControllerDelegate, ADBannerViewDelegate>
+@interface ShareViewController () <UITextFieldDelegate, MFMailComposeViewControllerDelegate, ADBannerViewDelegate, UITableViewDataSource, UITableViewDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
 
 @property (strong, nonatomic, readwrite) NSMutableArray *cellTitles;
 @property (strong, nonatomic) UITextField *addTextField;
@@ -23,7 +26,7 @@
 
 @end
 
-@implementation ShareTableViewController
+@implementation ShareViewController
 {
     CGRect _adFrame;
 }
@@ -44,15 +47,6 @@
     NSLog(@"dealloc %@", self);
 }
 
-- (id)initWithStyle:(UITableViewStyle)style
-{
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -60,25 +54,28 @@
     [PFAnalytics trackEvent:@"shareViewController Opened"];
     
     [self loadAdBanner];
-
-//    self.adBannerView = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
-//    self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
-//    //self.tableView.tableFooterView = self.adBannerView;
-//    self.adBannerView.delegate = self;
-//    [self.view addSubview:self.adBannerView];
+    
+    //[self loadAdBanner];
+    
+    //    self.adBannerView = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
+    //    self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+    //    //self.tableView.tableFooterView = self.adBannerView;
+    //    self.adBannerView.delegate = self;
+    //    [self.view addSubview:self.adBannerView];
     
     //self.tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0);
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
-    self.view.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
+    
+    self.tableView.backgroundColor = [UIColor colorWithRed:169.0/255 green:67.0/255 blue:181.0/255 alpha:1.0];
     [self.tableView setTableFooterView:[[UIView alloc] initWithFrame:CGRectZero]];
     //self.tableView.editing = NO;
     
     NSInteger nosReceived = [[NSUserDefaults standardUserDefaults] integerForKey:@"nosReceived"];
-
+    
     NSString *nosReceivedString = [NSString stringWithFormat:@"NO'S: %ld", nosReceived];
-        
+    
     self.cellTitles = [@[self.userID.username, @"INVITE", @"FIND FRIENDS", @"UNBLOCK", nosReceivedString, @"+", @"DONE"] mutableCopy];
     
     // Uncomment the following line to preserve selection between presentations.
@@ -190,7 +187,7 @@
     if (indexPath.row == [self.cellTitles count] - 1)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-    
+            
             [self dismissViewControllerAnimated:YES completion:^{
                 [self.noVC loadAdBanner];
             }];
@@ -260,25 +257,6 @@
     else if (indexPath.row == [self.cellTitles count] - 2)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-//            UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-//            cell.textLabel.hidden = YES;
-//            
-//            self.addTextField = [[UITextField alloc] initWithFrame:CGRectMake(cell.bounds.origin.x + 10, cell.bounds.origin.y + 10, cell.bounds.size.width - 20, cell.bounds.size.height - 20)];
-//            
-//            NSAttributedString *textFieldPlaceholder = [[NSAttributedString alloc] initWithString:@"TYPE USERNAME TO ADD" attributes:@{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:20]}];
-//            self.addTextField.attributedPlaceholder = textFieldPlaceholder;
-//            
-//            self.addTextField.defaultTextAttributes = @{NSForegroundColorAttributeName : [UIColor whiteColor], NSFontAttributeName : [UIFont fontWithName:@"AvenirNext-Bold" size:40]};
-//            self.addTextField.adjustsFontSizeToFitWidth = YES;
-//            self.addTextField.textAlignment = NSTextAlignmentCenter;
-//            self.addTextField.tintColor = [UIColor whiteColor];
-//            
-//            self.addTextField.delegate = self;
-//            self.addTextField.tag = indexPath.row;
-//            
-//            [cell addSubview:self.addTextField];
-//            
-//            [self.addTextField becomeFirstResponder];
             
             [self dismissViewControllerAnimated:YES completion:^{
                 [self.delegate dismissAndAddUser];
@@ -441,17 +419,6 @@
     self.tableView.contentInset = contentInsets;
     [self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
     
-    //scrollView.scrollIndicatorInsets = contentInsets;
-    
-    
-    // If active text field is hidden by keyboard, scroll it so it's visible
-    // Your app might not need or want this behavior.
-    //    CGRect aRect = self.view.frame;
-    //    aRect.size.height -= kbSize.height;
-    //    if (!CGRectContainsPoint(aRect, self.addTextField.frame.origin) ) {
-    //        [self.tableView scrollRectToVisible:self.addTextField.frame animated:YES];
-    //    }
-    
 }
 
 - (void)keyboardWillBeHidden:(NSNotification*)aNotification
@@ -478,36 +445,15 @@
 {
     NSLog(@"banner ad loaded");
     
-    if (!self.adBannerView)
-    {
-        self.adBannerView = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
-        self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
-        //self.tableView.tableFooterView = self.adBannerView;
-        self.adBannerView.delegate = self;
-        [self.view addSubview:self.adBannerView];
-        NSLog(@"ad created and added");
-    }
-    
     [UIView animateWithDuration:0.1 animations:^{
-        //self.adBannerView.frame = CGRectMake(0, self.tableView.bounds.size.height - self.adBannerView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
-        self.adBannerView.frame = CGRectMake(0, _adFrame.origin.y, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+        self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height - self.adBannerView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
         
         UIEdgeInsets contentInsets = UIEdgeInsetsMake(0, 0, 50, 0);
+        //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
         
         self.tableView.contentInset = contentInsets;
+        //[self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
     }];
-    
-//    if (!self.adBannerViewIsVisible) {
-//        [UIView animateWithDuration:0.1 animations:^{
-//            self.adBannerView.frame = CGRectMake(0, self.tableView.bounds.size.height - self.adBannerView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
-//            
-//            UIEdgeInsets contentInsets = UIEdgeInsetsMake(0, 0, 50, 0);
-//            
-//            self.tableView.contentInset = contentInsets;
-//            
-//            self.adBannerViewIsVisible = YES;
-//        }];
-//    }
     
     
 }
@@ -516,28 +462,12 @@
 {
     NSLog(@"banner ad failed");
     
-    self.adBannerViewIsVisible = NO;
-    
     [UIView animateWithDuration:0.1 animations:^{
-        self.adBannerView.frame = CGRectMake(0, self.tableView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
-        NSLog(@"adBanner frame: %f", self.tableView.frame.size.height);
+        self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
         
         UIEdgeInsets contenInsets = UIEdgeInsetsZero;
         self.tableView.contentInset = contenInsets;
     }];
-    
-    [self.adBannerView removeFromSuperview];
-    self.adBannerView = nil;
-}
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
-    CGRect iAdFrame = self.adBannerView.frame;
-    CGFloat newOriginY = self.tableView.contentOffset.y + self.tableView.frame.size.height - iAdFrame.size.height;
-    CGRect newiAdFrame = CGRectMake(iAdFrame.origin.x, newOriginY, iAdFrame.size.width, iAdFrame.size.height);
-    self.adBannerView.frame = newiAdFrame;
-    
-    _adFrame = newiAdFrame;
 }
 
 
@@ -548,23 +478,17 @@
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.addTextField.tag inSection:0];
     UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
     [self.addTextField removeFromSuperview];
-    
-    cell.frame = CGRectMake(0, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
     cell.textLabel.hidden = NO;
+    cell.frame = CGRectMake(0, cell.frame.origin.y, cell.frame.size.width, cell.frame.size.height);
 }
 
 - (void)loadAdBanner
 {
     self.adBannerView = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
-    self.adBannerView.frame = CGRectMake(0, self.tableView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+    self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
     self.adBannerView.delegate = self;
     [self.view addSubview:self.adBannerView];
 }
-
-
-
-
-
 
 
 

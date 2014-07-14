@@ -13,6 +13,8 @@
 		7B5D0B57195775E100648C09 /* UserTakenCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7B5D0B55195775E100648C09 /* UserTakenCell.xib */; };
 		7B6CC6F81960C8CB00037BC7 /* CustomButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B6CC6F71960C8CB00037BC7 /* CustomButton.m */; };
 		7B6CC6FB1960CE9000037BC7 /* SlideTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B6CC6FA1960CE9000037BC7 /* SlideTableViewCell.m */; };
+		7B7032F619735B830041BCC4 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B7032F519735B830041BCC4 /* ShareViewController.m */; };
+		7B7FBB9C196CD3A3004039F4 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7FBB9B196CD3A3004039F4 /* iAd.framework */; };
 		7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */; };
 		7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */; };
 		7BDC94E9195744B1005C0C20 /* addthis500.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BDC94E8195744B1005C0C20 /* addthis500.png */; };
@@ -56,6 +58,9 @@
 		7B6CC6F71960C8CB00037BC7 /* CustomButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomButton.m; sourceTree = "<group>"; };
 		7B6CC6F91960CE9000037BC7 /* SlideTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SlideTableViewCell.h; sourceTree = "<group>"; };
 		7B6CC6FA1960CE9000037BC7 /* SlideTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SlideTableViewCell.m; sourceTree = "<group>"; };
+		7B7032F419735B830041BCC4 /* ShareViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
+		7B7032F519735B830041BCC4 /* ShareViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
+		7B7FBB9B196CD3A3004039F4 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
 		7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareTableViewController.h; sourceTree = "<group>"; };
 		7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareTableViewController.m; sourceTree = "<group>"; };
 		7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnblockTableViewController.h; sourceTree = "<group>"; };
@@ -91,6 +96,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B7FBB9C196CD3A3004039F4 /* iAd.framework in Frameworks */,
 				7BF74CD3195480B600CAB951 /* CoreGraphics.framework in Frameworks */,
 				7BF74CD5195480B600CAB951 /* UIKit.framework in Frameworks */,
 				7BF74CD1195480B600CAB951 /* Foundation.framework in Frameworks */,
@@ -155,6 +161,7 @@
 		7BF74CCF195480B600CAB951 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7B7FBB9B196CD3A3004039F4 /* iAd.framework */,
 				7BF74CD0195480B600CAB951 /* Foundation.framework */,
 				7BF74CD2195480B600CAB951 /* CoreGraphics.framework */,
 				7BF74CD4195480B600CAB951 /* UIKit.framework */,
@@ -174,6 +181,8 @@
 				7BF74CE2195480B600CAB951 /* Main.storyboard */,
 				7BDC94EA19574819005C0C20 /* NoViewController.h */,
 				7BDC94EB19574819005C0C20 /* NoViewController.m */,
+				7B7032F419735B830041BCC4 /* ShareViewController.h */,
+				7B7032F519735B830041BCC4 /* ShareViewController.m */,
 				7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */,
 				7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */,
 				7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */,
@@ -367,6 +376,7 @@
 				7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */,
 				7B5D0B56195775E100648C09 /* UserTakenCell.m in Sources */,
 				7B6CC6FB1960CE9000037BC7 /* SlideTableViewCell.m in Sources */,
+				7B7032F619735B830041BCC4 /* ShareViewController.m in Sources */,
 				7BDC94EC19574819005C0C20 /* NoViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

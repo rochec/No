@@ -10,4 +10,6 @@
 
 @interface NoViewController : UIViewController
 
+- (void)loadAdBanner;
+
 @end

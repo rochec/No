@@ -242,7 +242,7 @@
 
 -(void)toShareButton:(id)sender
 {
-    [self performSegueWithIdentifier:@"toShare" sender:sender];
+    [self performSegueWithIdentifier:@"toShareVC" sender:sender];
 }
 
 - (void)postToFacebook

@@ -8,14 +8,18 @@
 
 #import "NoViewController.h"
 #import "ShareTableViewController.h"
+
+#import "ShareViewController.h"
+
 #import "CustomButton.h"
 #import "SlideTableViewCell.h"
 
 #import <MessageUI/MessageUI.h>
+#import <iAd/iAd.h>
 
 typedef void(^myCompletion)(BOOL);
 
-@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, MFMailComposeViewControllerDelegate, ShareTableViewControllerDelegate>
+@interface NoViewController () <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, MFMailComposeViewControllerDelegate, ShareTableViewControllerDelegate, ADBannerViewDelegate, ShareViewControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
@@ -37,6 +41,10 @@ typedef void(^myCompletion)(BOOL);
 @property (strong, nonatomic) UIButton *blockButton;
 
 @property (strong, nonatomic) PFUser *userID;
+
+@property (strong, nonatomic) UIView *contentView;
+@property (strong, nonatomic) ADBannerView *adBannerView;
+@property (nonatomic) BOOL adBannerViewIsVisible;
 
 @end
 
@@ -73,6 +81,9 @@ typedef void(^myCompletion)(BOOL);
     [super viewDidLoad];
     [self registerForKeyboardNotifications];
     [PFAnalytics trackEvent:@"noViewController Opened"];
+    
+    //self.canDisplayBannerAds = YES;
+    [self loadAdBanner];
 
     self.slideCell = [[UITableViewCell alloc] initWithFrame:CGRectZero];
     
@@ -108,6 +119,12 @@ typedef void(^myCompletion)(BOOL);
     UISwipeGestureRecognizer *swipeGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didSwipe:)];
     swipeGestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
     [self.tableView addGestureRecognizer:swipeGestureRecognizer];
+}
+
+-(void)dealloc
+{
+    self.contentView = nil;
+    self.adBannerView = nil;
 }
 
 -(void)viewWillAppear:(BOOL)animated
@@ -150,11 +167,22 @@ typedef void(^myCompletion)(BOOL);
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
-    if ([segue.identifier isEqualToString:@"toShare"])
+//    if ([segue.identifier isEqualToString:@"toShare"])
+//    {
+//        ShareTableViewController *controller = segue.destinationViewController;
+//        controller.userID = self.userID;
+//        controller.delegate = self;
+//        controller.noVC = self;
+//        
+//        [self.adBannerView removeFromSuperview];
+//        NSLog(@"adBanner removed");
+//    }
+    if ([segue.identifier isEqualToString:@"toShareVC"])
     {
-        ShareTableViewController *controller = segue.destinationViewController;
-        controller.userID = self.userID;
+        ShareViewController *controller = segue.destinationViewController;
+        controller.userID =self.userID;
         controller.delegate = self;
+        controller.noVC = self;
     }
 }
 
@@ -724,7 +752,7 @@ typedef void(^myCompletion)(BOOL);
 
 -(void)toShareButton:(id)sender
 {
-    [self performSegueWithIdentifier:@"toShare" sender:sender];
+    [self performSegueWithIdentifier:@"toShareVC" sender:sender];
 }
 
 - (void)postToFacebook
@@ -899,13 +927,31 @@ typedef void(^myCompletion)(BOOL);
 
 - (void)keyboardWillBeHidden:(NSNotification*)aNotification
 {
-    UIEdgeInsets contentInsets = UIEdgeInsetsZero;
     
-    NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
-    [UIView animateWithDuration:rate.floatValue animations:^{
-        self.tableView.contentInset = contentInsets;
-        self.tableView.scrollIndicatorInsets = contentInsets;
-    }];
+    if (self.adBannerView.bannerLoaded)
+    {
+        UIEdgeInsets contentInsets = UIEdgeInsetsMake(0, 0, 50, 0);
+        //UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
+        //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
+        NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+
+        [UIView animateWithDuration:rate.floatValue animations:^{
+            self.tableView.contentInset = contentInsets;
+        }];
+        //[self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    }
+    else
+    {
+        UIEdgeInsets contentInsets = UIEdgeInsetsZero;
+        
+        NSNumber *rate = aNotification.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+        [UIView animateWithDuration:rate.floatValue animations:^{
+            self.tableView.contentInset = contentInsets;
+            self.tableView.scrollIndicatorInsets = contentInsets;
+        }];
+    }
+    
+    
 }
 
 #pragma mark - ShareTableViewControllerDelegate
@@ -927,6 +973,69 @@ typedef void(^myCompletion)(BOOL);
     [self dismissViewControllerAnimated:controller completion:nil];
 }
 
+#pragma mark - AdBannerViewDelegate
+
+-(void)bannerViewDidLoadAd:(ADBannerView *)banner
+{
+    NSLog(@"banner ad loaded");
+    
+    [UIView animateWithDuration:0.1 animations:^{
+        self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height - self.adBannerView.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+        
+        UIEdgeInsets contentInsets = UIEdgeInsetsMake(0, 0, 50, 0);
+        //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[self.cellTitles count] - 2 inSection:0];
+        
+        self.tableView.contentInset = contentInsets;
+        //[self.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    }];
+    
+    
+}
+
+-(void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error
+{
+    NSLog(@"banner ad failed");
+    
+    [UIView animateWithDuration:0.1 animations:^{
+        self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+        
+        UIEdgeInsets contenInsets = UIEdgeInsetsZero;
+        self.tableView.contentInset = contenInsets;
+    }];
+}
+
+#pragma mark - AdBanner Methods
+
+- (int)getBannerHeight:(UIDeviceOrientation)orientation
+{
+    if (UIDeviceOrientationIsPortrait(orientation))
+    {
+        return 50;
+    }
+    else
+    {
+        return 32;
+    }
+}
+
+- (int)getBannerHeight
+{
+    return [self getBannerHeight:[UIDevice currentDevice].orientation];
+}
+
+- (void)createAdBannerView {
+    Class classAdBannerView = NSClassFromString(@"ADBannerView");
+    if (classAdBannerView != nil) {
+        self.adBannerView = [[classAdBannerView alloc]
+                              initWithFrame:CGRectZero];
+
+        [_adBannerView setFrame:CGRectOffset([_adBannerView frame], 0,
+                                             -50)];
+        [_adBannerView setDelegate:self];
+        
+        [self.view addSubview:_adBannerView];        
+    }
+}
 
 #pragma mark - Helper Methods
 
@@ -1136,6 +1245,14 @@ typedef void(^myCompletion)(BOOL);
         [cell.cancelButton removeFromSuperview];
         [optionsCell removeFromSuperview];
     }];
+}
+
+- (void)loadAdBanner
+{
+    self.adBannerView = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
+    self.adBannerView.frame = CGRectMake(0, self.view.frame.size.height, self.adBannerView.frame.size.width, self.adBannerView.frame.size.height);
+    self.adBannerView.delegate = self;
+    [self.view addSubview:self.adBannerView];
 }
 
 #pragma mark - Blocked Users

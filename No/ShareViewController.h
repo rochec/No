@@ -1,23 +1,24 @@
 //
-//  ShareTableViewController.h
+//  ShareViewController.h
 //  No
 //
-//  Created by Chris Roche on 6/20/14.
+//  Created by Chris Roche on 7/13/14.
 //  Copyright (c) 2014 Chris Roche. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 @class NoViewController;
 
-@protocol ShareTableViewControllerDelegate <NSObject>
+
+@protocol ShareViewControllerDelegate <NSObject>
 
 - (void)dismissAndAddUser;
 
 @end
 
-@interface ShareTableViewController : UITableViewController
+@interface ShareViewController : UIViewController
 
-@property (weak, nonatomic) id <ShareTableViewControllerDelegate> delegate;
+@property (weak, nonatomic) id <ShareViewControllerDelegate> delegate;
 @property (strong, nonatomic) NoViewController *noVC;
 
 @property (strong, nonatomic, readonly) NSMutableArray *cellTitles;
