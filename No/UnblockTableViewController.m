@@ -211,8 +211,9 @@
             }
             else if (error)
             {
-#warning what happens if unblock query fails?
                 NSLog(@"error %@", error);
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"UNBLOCK FAILED" message:@"THERE WAS AN ERROR UNBLOCKING THE USER.  PLEASE TRY AGAIN." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles: nil];
+                [alert show];
             }
         }];
         

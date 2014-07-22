@@ -15,6 +15,8 @@
 		7B6CC6FB1960CE9000037BC7 /* SlideTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B6CC6FA1960CE9000037BC7 /* SlideTableViewCell.m */; };
 		7B7032F619735B830041BCC4 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7B7032F519735B830041BCC4 /* ShareViewController.m */; };
 		7B7FBB9C196CD3A3004039F4 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B7FBB9B196CD3A3004039F4 /* iAd.framework */; };
+		7B9A608D197E0D080052F8DC /* no_button.png in Resources */ = {isa = PBXBuildFile; fileRef = 7B9A608B197E0D080052F8DC /* no_button.png */; };
+		7B9A608E197E0D080052F8DC /* no_button 2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7B9A608C197E0D080052F8DC /* no_button 2x.png */; };
 		7BCDFBCD19548E9D00A6978C /* ShareTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */; };
 		7BCDFBD019549C1700A6978C /* UnblockTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCDFBCF19549C1700A6978C /* UnblockTableViewController.m */; };
 		7BDC94E9195744B1005C0C20 /* addthis500.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BDC94E8195744B1005C0C20 /* addthis500.png */; };
@@ -61,6 +63,8 @@
 		7B7032F419735B830041BCC4 /* ShareViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
 		7B7032F519735B830041BCC4 /* ShareViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareViewController.m; sourceTree = "<group>"; };
 		7B7FBB9B196CD3A3004039F4 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
+		7B9A608B197E0D080052F8DC /* no_button.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = no_button.png; sourceTree = "<group>"; };
+		7B9A608C197E0D080052F8DC /* no_button 2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "no_button 2x.png"; sourceTree = "<group>"; };
 		7BCDFBCB19548E9D00A6978C /* ShareTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareTableViewController.h; sourceTree = "<group>"; };
 		7BCDFBCC19548E9D00A6978C /* ShareTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareTableViewController.m; sourceTree = "<group>"; };
 		7BCDFBCE19549C1700A6978C /* UnblockTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UnblockTableViewController.h; sourceTree = "<group>"; };
@@ -202,6 +206,8 @@
 		7BF74CD7195480B600CAB951 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				7B9A608B197E0D080052F8DC /* no_button.png */,
+				7B9A608C197E0D080052F8DC /* no_button 2x.png */,
 				7BDC94E8195744B1005C0C20 /* addthis500.png */,
 				7BF74CD8195480B600CAB951 /* No-Info.plist */,
 				7BF74CD9195480B600CAB951 /* InfoPlist.strings */,
@@ -312,8 +318,10 @@
 			files = (
 				7BF74CE9195480B600CAB951 /* Images.xcassets in Resources */,
 				7BF74CDB195480B600CAB951 /* InfoPlist.strings in Resources */,
+				7B9A608E197E0D080052F8DC /* no_button 2x.png in Resources */,
 				7BF74CE4195480B600CAB951 /* Main.storyboard in Resources */,
 				7BDC94E9195744B1005C0C20 /* addthis500.png in Resources */,
+				7B9A608D197E0D080052F8DC /* no_button.png in Resources */,
 				7B5D0B57195775E100648C09 /* UserTakenCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -505,8 +513,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "No/No-Prefix.pch";
 				INFOPLIST_FILE = "No/No-Info.plist";
@@ -524,8 +532,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "No/No-Prefix.pch";
 				INFOPLIST_FILE = "No/No-Info.plist";

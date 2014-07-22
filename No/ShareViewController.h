@@ -24,4 +24,7 @@
 @property (strong, nonatomic, readonly) NSMutableArray *cellTitles;
 @property (strong, nonatomic) PFUser *userID;
 
+@property (strong, nonatomic) NSString *shareURL;
+
+
 @end

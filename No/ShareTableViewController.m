@@ -190,10 +190,12 @@
     if (indexPath.row == [self.cellTitles count] - 1)
     {
         dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [self dismissViewControllerAnimated:YES completion:nil];
     
-            [self dismissViewControllerAnimated:YES completion:^{
-                [self.noVC loadAdBanner];
-            }];
+//            [self dismissViewControllerAnimated:YES completion:^{
+//                [self.noVC loadAdBanner];
+//            }];
         });
         return nil;
     }
